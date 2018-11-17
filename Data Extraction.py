@@ -6,6 +6,7 @@ Created on Thu Nov  1 10:40:49 2018
 """
 
 import pandas
+import numpy
 
 # Imports the raw data
 s_train = pandas.read_csv("coveo_searches_train.csv")
@@ -21,9 +22,9 @@ c_features = ["search_id", "document_id", "document_source", "click_rank"]
 # Removes the unnecessary features
 s_train = s_train.loc[:, s_features]
 c_train = c_train.loc[:, c_features]
-s_val = s_train.loc[:, s_features]
-c_val = c_train.loc[:, c_features]
-s_test = s_train.loc[:, s_features]
+s_val = s_val.loc[:, s_features]
+c_val = c_val.loc[:, c_features]
+s_test = s_test.loc[:, s_features]
 
 # Gets classes (unique documents) and sources
 classes = pandas.unique(c_train.loc[:, "document_id"])
@@ -40,8 +41,17 @@ for s_id in s_val.loc[:, "search_id"]:
 r_train = docs_train # List containing the documents clicked on for each search in the training set
 r_val = docs_val # List containing the documents clicked on for each search in the validation set
 
+num_clicks_train = numpy.repeat(0, len(docs_train))
+for i in range(len(docs_train)):
+    num_clicks_train[i] = len(docs_train[i])
 
 
+num_clicks_val = numpy.repeat(0, len(docs_val))
+for i in range(len(docs_val)):
+    num_clicks_val[i] = len(docs_val[i])
+docs_val[2]
+sum(num_clicks_train != 0)
+sum(num_clicks_val != 0)
 
 
 
