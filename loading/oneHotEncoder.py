@@ -31,9 +31,9 @@ class OneHotEncoder:
             ldict[el] = count
             count += 1
         
-        y = np.zeros(shape=(len(data), count))
+        y = np.zeros(shape=(len(data), count), dtype=bool)
         for i, el in enumerate(data):
             if el in ldict.keys():
-                y[i, ldict[el]] = 1
+                y[i, ldict[el]] = True
                 
         return y

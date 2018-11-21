@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from nltk import word_tokenize
 
 class BagOfWordsVectorizer:
-    def __init__(self, min_freq=3,
+    def __init__(self, min_freq=5,
                  tokenizer=word_tokenize,
                  excluded_values=['``', '\'\'', ':', '@', "'", '!', '#', '(', ')', '-', '.', '/',
                                   ';', '<', '=', '>', ',', '?', '[', ']']):
@@ -37,5 +37,5 @@ class BagOfWordsVectorizer:
         data_bow = self.count_vectorizer.transform(data.values).toarray()
         data_bow[data_bow > 0] = 1
 
-        return data_bow
+        return data_bow.astype(bool)
     
