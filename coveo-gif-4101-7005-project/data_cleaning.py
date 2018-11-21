@@ -1,3 +1,4 @@
+__author__ = "Francis Brochu"
 #!/usr/bin/env python
 # coding: utf-8
 
