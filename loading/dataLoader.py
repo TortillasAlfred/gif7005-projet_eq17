@@ -38,7 +38,7 @@ class DataLoader:
 
     def load_data_from_numpy(self):
         return self.load_all_from_numpy("X_train", "X_valid", "X_test",
-                                        "y_train", "y_valid", "all_docs_ids")
+                                        "y_train", "y_valid", "all_docs", "all_docs_ids")
 
     
     def save_all_to_numpy(self, **data_dict):
@@ -149,18 +149,18 @@ class DataLoader:
         all_docs_ids = self.load_all_from_numpy("all_docs_ids")
 
         all_clicks = pds.concat([clicks_train, clicks_valid])
-        y_train = np.empty((searches_train.shape[0], all_docs_ids.shape[0]), dtype=int)
-        y_valid = np.empty((searches_valid.shape[0], all_docs_ids.shape[0]), dtype=int)
+        y_train = np.empty((searches_train.shape[0], all_docs_ids.shape[0]), dtype=bool)
+        y_valid = np.empty((searches_valid.shape[0], all_docs_ids.shape[0]), dtype=bool)
 
         correspondance_train = clicks_train[["search_id", "document_id"]]
         for c in correspondance_train.values:
             y_train[np.where(searches_train.search_id.values == c[0]),\
-                    np.where(all_docs_ids == c[1])] = 1
+                    np.where(all_docs_ids == c[1])] = True
 
         correspondance_valid = clicks_valid[["search_id", "document_id"]]
         for c in correspondance_valid.values:
             y_valid[np.where(searches_valid.search_id.values == c[0]),\
-                    np.where(all_docs_ids == c[1])] = 1
+                    np.where(all_docs_ids == c[1])] = True
 
         self.save_all_to_numpy(**{"y_train": y_train,
                                   "y_valid": y_valid})
