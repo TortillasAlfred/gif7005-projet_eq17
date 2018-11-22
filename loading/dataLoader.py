@@ -87,11 +87,11 @@ class DataLoader:
     def filter_data(self):
         X_train, X_valid, y_train, y_valid = self.load_all_from_numpy("X_train", "X_valid", "y_train", "y_valid")
 
-        filter_train = np.where([len(col[0]) > 0 for col in y_train])
+        filter_train = np.where([len(col) > 0 for col in y_train])
         X_train = X_train[filter_train]
         y_train = y_train[filter_train]
 
-        filter_valid = np.where([len(col[0]) > 0 for col in y_valid])
+        filter_valid = np.where([len(col) > 0 for col in y_valid])
         X_valid = X_valid[filter_valid]
         y_valid = y_valid[filter_valid]
 
@@ -181,8 +181,8 @@ class DataLoader:
             y_valid[np.where(searches_valid.search_id.values == c[0]),\
                     np.where(all_docs_ids == c[1])] = True
 
-        y_train = np.asarray([np.where(row == 1) for row in y_train])
-        y_valid = np.asarray([np.where(row == 1) for row in y_valid])
+        y_train = np.asarray([np.where(row == 1)[0] for row in y_train])
+        y_valid = np.asarray([np.where(row == 1)[0] for row in y_valid])
 
         self.save_all_to_numpy(**{"y_train": y_train,
                                   "y_valid": y_valid})
