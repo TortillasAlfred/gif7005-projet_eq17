@@ -10,7 +10,7 @@ class DataLoader:
 
     def __init__(self, vectorizer, one_hot_encoder,
                  search_features, click_features, data_folder_path,
-                 numpy_folder_path, load_from_numpy):
+                 numpy_folder_path, load_from_numpy, filter_no_clicks=False):
         self.vectorizer = vectorizer
         self.one_hot_encoder = one_hot_encoder
         self.search_features = search_features
@@ -18,6 +18,7 @@ class DataLoader:
         self.data_folder_path = data_folder_path
         self.numpy_folder_path = numpy_folder_path
         self.load_from_numpy = load_from_numpy
+        self.filter_no_clicks = filter_no_clicks
         if not os.path.exists(self.numpy_folder_path):
             os.makedirs(self.numpy_folder_path)
         self.features_transformers = {"search_cause": self.one_hot_transformer,
@@ -77,7 +78,25 @@ class DataLoader:
 
         self.get_y()
 
+        if self.filter_no_clicks:
+            self.filter_data()
+
         return self.load_data_from_numpy()
+
+    
+    def filter_data(self):
+        X_train, X_valid, y_train, y_valid = self.load_all_from_numpy("X_train", "X_valid", "y_train", "y_valid")
+
+        filter_train = np.where([len(col[0]) > 0 for col in y_train])
+        X_train = X_train[filter_train]
+        y_train = y_train[filter_train]
+
+        filter_valid = np.where([len(col[0]) > 0 for col in y_valid])
+        X_valid = X_valid[filter_valid]
+        y_valid = y_valid[filter_valid]
+
+        self.save_all_to_numpy(**{"X_train": X_train, "X_valid": X_valid,
+                                  "y_train": y_train, "y_valid": y_valid})
 
 
     def load_searches(self):
@@ -161,6 +180,9 @@ class DataLoader:
         for c in correspondance_valid.values:
             y_valid[np.where(searches_valid.search_id.values == c[0]),\
                     np.where(all_docs_ids == c[1])] = True
+
+        y_train = np.asarray([np.where(row == 1) for row in y_train])
+        y_valid = np.asarray([np.where(row == 1) for row in y_valid])
 
         self.save_all_to_numpy(**{"y_train": y_train,
                                   "y_valid": y_valid})
