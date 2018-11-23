@@ -40,7 +40,7 @@ class LR:
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
 
     def run_filtered(self):
-        print("**** UNFILTERED EXP ****")
+        print("**** FILTERED EXP ****")
         X_train, X_valid, _, y_train, y_valid, _, all_docs_ids = self.loader_filtered.load_transform_data()
 
         reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
