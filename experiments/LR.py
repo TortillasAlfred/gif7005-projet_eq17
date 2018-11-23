@@ -1,7 +1,7 @@
 from loading.oneHotEncoder import OneHotEncoder
 from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import WordVectorizer
-from loading.dataLoader import DataLoader
+from loading.dataLoader import DataLoaderAll, DataLoaderTxt
 from wrappers.regression_wrapper import RegressionWrapper
 from scorers.coveo_scorer import coveo_score
 
@@ -17,19 +17,19 @@ class LR:
         vectWV = WordVectorizer()
         vectBOW = BagOfWordsVectorizer()
         enc = OneHotEncoder()
-        self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
-                                    search_features=DataLoader.default_search_features,
-                                    click_features=DataLoader.default_click_features,
+        self.loader_wv = DataLoaderTxt(vectorizer=vectWV, one_hot_encoder=enc,
+                                    search_features=DataLoaderTxt.default_search_features,
+                                    click_features=DataLoaderTxt.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/wv/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
-        self.loader_unfiltered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
-                                    search_features=DataLoader.default_search_features,
-                                    click_features=DataLoader.default_click_features,
+        self.loader_unfiltered = DataLoaderTxt(vectorizer=vectBOW, one_hot_encoder=enc,
+                                    search_features=DataLoaderTxt.default_search_features,
+                                    click_features=DataLoaderTxt.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/bow_oh_unfiltered/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=False)
-        self.loader_filtered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
-                                    search_features=DataLoader.default_search_features,
-                                    click_features=DataLoader.default_click_features,
+        self.loader_filtered = DataLoaderTxt(vectorizer=vectBOW, one_hot_encoder=enc,
+                                    search_features=DataLoaderTxt.default_search_features,
+                                    click_features=DataLoaderTxt.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/bow_oh_filtered/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
 
