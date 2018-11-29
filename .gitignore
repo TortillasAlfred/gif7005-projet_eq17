@@ -109,8 +109,13 @@ venv.bak/
 # PyCharm
 .idea/
 
-# Data
-*.csv
+# Coveo Data
+data/coveo_searches_train.csv
+data/coveo_searches_valid.csv
+data/coveo_searches_test.csv
+data/coveo_clicks_train.csv
+data/coveo_clicks_valid.csv
+
+# Generated Data
 *.npy
 *.pck
-.data/*
