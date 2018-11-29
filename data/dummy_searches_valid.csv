@@ -1,0 +1,5 @@
+search_id,search_datetime,search_cause,search_nresults,query_expression,query_pipeline,facet_title,facet_value,visit_id,visitor_id,user_id,user_language,user_device,user_is_mobile,user_country,user_city,user_region,user_type
+1c6170b8-59ed-454d-8ef7-ff67291d8ea3,2017-08-16 19:08:42.283,searchFromLink,1672,un,query_pipeline_6,,,a73dc6fa-765d-4b04-9fea-3a079b98f63c,93859c70-ff99-4a62-8e8c-c5303a3f7c87,user_0,en,Chrome,f,Canada,Laval,Quebec,
+5721e69d-31eb-45e9-a36a-8ae926e7903e,2017-06-26 21:55:32.06,searchFromLink,611,aucun,query_pipeline_7,,,4e60c872-4f85-4a25-a906-19a2d7ec7bed,6b5be38d-5503-4a69-98b9-2ef942517789,user_0,en,Chrome,f,Canada,Québec,Quebec,
+abb96f78-7276-41dc-bda3-17e946f0ceab,2017-09-28 05:33:27.179,searchFromLink,14,un,query_pipeline_5,,,cef8f41d-b517-48bd-bffe-3da39c81b9a6,851dd98d-f146-426c-9652-7e993647b4d4,user_0,en,Chrome,f,Canada,,North America,
+59ae00d3-38c1-406b-b36f-658bb85e63a3,2017-06-07 13:53:23.45,searchboxSubmit,13,vide,query_pipeline_5,,,a185e283-86be-458a-b08a-06f26d6b3b09,886345d4-1a96-4895-9d65-148dd34f2bf6,user_0,en,Chrome,f,Canada,Laval,Quebec,

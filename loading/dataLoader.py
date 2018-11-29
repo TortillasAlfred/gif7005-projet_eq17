@@ -10,7 +10,8 @@ class DataLoader:
 
     def __init__(self, vectorizer, one_hot_encoder,
                  search_features, click_features, data_folder_path,
-                 numpy_folder_path, load_from_numpy, filter_no_clicks=False):
+                 numpy_folder_path, load_from_numpy, filter_no_clicks=False,
+                 load_dummy=False):
         self.vectorizer = vectorizer
         self.one_hot_encoder = one_hot_encoder
         self.search_features = search_features
@@ -19,6 +20,7 @@ class DataLoader:
         self.numpy_folder_path = numpy_folder_path
         self.load_from_numpy = load_from_numpy
         self.filter_no_clicks = filter_no_clicks
+        self.load_dummy = load_dummy
         if not os.path.exists(self.numpy_folder_path):
             os.makedirs(self.numpy_folder_path)
         self.features_transformers = {"search_cause": self.one_hot_transformer,
@@ -26,7 +28,7 @@ class DataLoader:
                                       "query_pipeline": self.one_hot_transformer, 
                                       "facet_title": self.one_hot_transformer, 
                                       "user_type": self.one_hot_transformer, 
-                                      "document_source": self.one_hot_transformer, 
+                                      "document_source": self.one_hot_transformer,
                                       "document_title": self.vectorizer_transformer}
 
 
@@ -100,13 +102,18 @@ class DataLoader:
 
 
     def load_searches(self):
-        searches_train = pds.read_csv(self.data_folder_path + "coveo_searches_train.csv")
-        searches_valid = pds.read_csv(self.data_folder_path + "coveo_searches_valid.csv")
-        searches_test = pds.read_csv(self.data_folder_path + "coveo_searches_test.csv")
+        if self.load_dummy:
+            searches_train = pds.read_csv(self.data_folder_path + "dummy_searches_train.csv")
+            searches_valid = pds.read_csv(self.data_folder_path + "dummy_searches_valid.csv")
+            searches_test = pds.read_csv(self.data_folder_path + "dummy_searches_test.csv")
+        else:
+            searches_train = pds.read_csv(self.data_folder_path + "coveo_searches_train.csv")
+            searches_valid = pds.read_csv(self.data_folder_path + "coveo_searches_valid.csv")
+            searches_test = pds.read_csv(self.data_folder_path + "coveo_searches_test.csv")
 
         self.save_all_to_pickle(**{"searches_train": searches_train[self.search_features],
-                                "searches_valid": searches_valid[self.search_features],
-                                "searches_test": searches_test[self.search_features]})
+                                   "searches_valid": searches_valid[self.search_features],
+                                   "searches_test": searches_test[self.search_features]})
 
 
     def transform_searches(self):
@@ -135,8 +142,12 @@ class DataLoader:
 
 
     def load_clicks(self):
-        clicks_train = pds.read_csv(self.data_folder_path + "coveo_clicks_train.csv")
-        clicks_valid = pds.read_csv(self.data_folder_path + "coveo_clicks_valid.csv")
+        if self.load_dummy:
+            clicks_train = pds.read_csv(self.data_folder_path + "dummy_clicks_train.csv")
+            clicks_valid = pds.read_csv(self.data_folder_path + "dummy_clicks_valid.csv")
+        else:
+            clicks_train = pds.read_csv(self.data_folder_path + "coveo_clicks_train.csv")
+            clicks_valid = pds.read_csv(self.data_folder_path + "coveo_clicks_valid.csv")
 
         self.save_all_to_pickle(**{"clicks_train": clicks_train[self.click_features],
                                 "clicks_valid": clicks_valid[self.click_features]})
