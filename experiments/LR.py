@@ -42,12 +42,8 @@ class LR:
         print("**** WORD VECTOR ****")
         X_train, X_valid, _, y_train, y_valid, _, all_docs_ids = self.loader_wv.load_transform_data()
 
-        fp = np.memmap("./essaiMemMap", dtype=bool, mode='w+', shape=X_train.shape)
-
-        fp[:] = X_train[:]
-
         reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
-        reg.fit(fp, y_train)
+        reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
 
