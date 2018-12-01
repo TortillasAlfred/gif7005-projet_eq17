@@ -179,8 +179,8 @@ class DataLoader:
         all_docs_ids = self.load_all_from_numpy("all_docs_ids")
 
         all_clicks = pds.concat([clicks_train, clicks_valid])
-        y_train = np.empty((searches_train.shape[0], all_docs_ids.shape[0]), dtype=bool)
-        y_valid = np.empty((searches_valid.shape[0], all_docs_ids.shape[0]), dtype=bool)
+        y_train = np.zeros((searches_train.shape[0], all_docs_ids.shape[0]), dtype=bool)
+        y_valid = np.zeros((searches_valid.shape[0], all_docs_ids.shape[0]), dtype=bool)
 
         correspondance_train = clicks_train[["search_id", "document_id"]]
         for c in correspondance_train.values:

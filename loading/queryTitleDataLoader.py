@@ -14,12 +14,12 @@ class QueryTitleDataLoader(DataLoader):
         self.load_searches()
         self.load_clicks()
 
-        self.generate_datasets()
+        self.load_transform_data()
         self.generate_labels()
 
         return self.load_data_from_numpy()
 
-    def generate_datasets(self):
+    def load_transform_data(self):
         searches_train, searches_valid, searches_test, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
                                                                                                               "searches_valid",
                                                                                                               "searches_test",
