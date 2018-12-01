@@ -7,6 +7,8 @@ from copy import deepcopy
 class DataLoader:
     default_search_features = ["search_id", "search_cause", "query_expression", "query_pipeline", "facet_title", "user_type"]
     default_click_features = ["document_id", "document_title", "search_id"]
+    only_query = ["query_expression"]
+    only_doc_title = ["document_title"]
 
     def __init__(self, vectorizer, one_hot_encoder,
                  search_features, click_features, data_folder_path,
