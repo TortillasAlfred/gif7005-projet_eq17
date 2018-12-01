@@ -31,13 +31,9 @@ class QueryTitleDataLoader(DataLoader):
         doc_titles = self.get_doc_titles(clicks_train, clicks_valid)
         tr_doc_titles = self.features_transformers["document_title"](doc_titles)[0]
 
-        self.nb_docs = len(tr_doc_titles)
-
-        X_train = self.create_all_possible_combinations(tr_q_exps_train, tr_doc_titles)
-        X_valid = self.create_all_possible_combinations(tr_q_exps_valid, tr_doc_titles)
-        X_test = self.create_all_possible_combinations(tr_q_exps_test, tr_doc_titles)
-
-        self.save_all_to_numpy(**{"X_train": X_train, "X_valid": X_valid, "X_test": X_test})
+        self.create_all_possible_combinations(tr_q_exps_train, tr_doc_titles, "X_train.npy")
+        self.create_all_possible_combinations(tr_q_exps_valid, tr_doc_titles, "X_valid.npy")
+        self.create_all_possible_combinations(tr_q_exps_test, tr_doc_titles, "X_test.npy")
 
     def get_doc_titles(self, clicks_train, clicks_valid):
         all_clicks = pds.concat([clicks_train, clicks_valid])
@@ -45,13 +41,13 @@ class QueryTitleDataLoader(DataLoader):
         doc_titles.fillna("", inplace=True)
         return np.unique(doc_titles.ravel())
 
-    def create_all_possible_combinations(self, a, b):
-        out = np.zeros((len(a) * len(b), 2), dtype=object)
+    def create_all_possible_combinations(self, a, b, filename):
+        out = np.memmap(self.numpy_folder_path + filename, dtype="float32", mode="w+",
+                        shape=(a.shape[0] * b.shape[0], a.shape[1] + b.shape[1]))
         for i in range(len(a)):
             for j in range(len(b)):
-                out[(i * len(b)) + j, 0] = a[i]
-                out[(i * len(b)) + j, 1] = b[j]
-        return out
+                out[(i * len(b)) + j] = np.hstack((a[i], b[j]))
+        out.flush()
 
     def get_y(self):
         searches_train, searches_valid, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
@@ -62,11 +58,6 @@ class QueryTitleDataLoader(DataLoader):
         docs_idx = dict()
         for i, item in enumerate(doc_titles):
             docs_idx[item] = i
-
-        y_train = np.empty(searches_train.shape[0] * self.nb_docs, dtype=bool)
-        y_train.fill(False)
-        y_valid = np.empty(searches_valid.shape[0] * self.nb_docs, dtype=bool)
-        y_valid.fill(False)
 
         clicked_docs_for_each_search_train = []
         for s_id in searches_train.loc[:, "search_id"]:
@@ -80,12 +71,16 @@ class QueryTitleDataLoader(DataLoader):
             titles.fillna("", inplace=True)
             clicked_docs_for_each_search_val.append(titles.ravel())
 
+        y_train = np.memmap(self.numpy_folder_path + "y_train.npy", dtype=bool, mode="w+", shape=(searches_train.shape[0] * doc_titles.shape[0],))
+        y_train.fill(False)
         for i, clicked_docs_for_one_search in enumerate(clicked_docs_for_each_search_train):
             for doc in clicked_docs_for_one_search:
-                y_train[(i * self.nb_docs) + docs_idx[doc]] = True
+                y_train[(i * doc_titles.shape[0]) + docs_idx[doc]] = True
+        y_train.flush()
 
+        y_valid = np.memmap(self.numpy_folder_path + "y_valid.npy", dtype=bool, mode="w+", shape=(searches_valid.shape[0] * doc_titles.shape[0],))
+        y_valid.fill(False)
         for i, clicked_docs_for_one_search in enumerate(clicked_docs_for_each_search_val):
             for doc in clicked_docs_for_one_search:
-                y_valid[(i * self.nb_docs) + docs_idx[doc]] = True
-
-        self.save_all_to_numpy(**{"y_train": y_train, "y_valid": y_valid})
+                y_valid[(i * doc_titles.shape[0]) + docs_idx[doc]] = True
+        y_valid.flush()
