@@ -12,7 +12,7 @@ class PoC:
         enc = OneHotEncoder()
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.only_query,
-                                    click_features=DataLoader.only_doc_title,
+                                    click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/qd_wv/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=False)
 

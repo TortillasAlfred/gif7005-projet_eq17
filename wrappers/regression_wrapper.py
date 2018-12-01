@@ -46,10 +46,10 @@ class RegressionWrapper:
         next_idx = 0
 
         for i, y_i in enumerate(y):
-            X_taken.add(i)
             for doc_number in y_i:
+                X_taken.add(i)
                 docs_taken.add(doc_number)
-                X_reg[next_idx] = X[i]
+                X_reg[next_idx] = np.hstack((X[i], self.docs[doc_number]))
                 y_reg[next_idx] = True
                 next_idx += 1
 
@@ -64,7 +64,7 @@ class RegressionWrapper:
                     break
             X_left.remove(x_drawn)
             docs_left.remove(doc_drawn)
-            X_reg[next_idx] = X[x_drawn]
+            X_reg[next_idx] = np.hstack((X[x_drawn], self.docs[doc_drawn]))
             y_reg[next_idx] = False
             next_idx += 1
             if len(X_left) == 0:

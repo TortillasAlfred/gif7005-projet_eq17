@@ -7,8 +7,7 @@ from copy import deepcopy
 class DataLoader:
     default_search_features = ["search_id", "search_cause", "query_expression", "query_pipeline", "facet_title", "user_type"]
     default_click_features = ["document_id", "document_title", "search_id"]
-    only_query = ["query_expression"]
-    only_doc_title = ["document_title"]
+    only_query = ["search_id", "query_expression"]
 
     def __init__(self, vectorizer, one_hot_encoder,
                  search_features, click_features, data_folder_path,
@@ -167,7 +166,7 @@ class DataLoader:
         for feature in list(clicks_train):
             if feature in self.features_transformers.keys():
                 d = self.features_transformers[feature](all_clicks[feature])
-                all_docs.append(d)
+                all_docs.append(d[0])
 
         self.save_all_to_numpy(**{"all_docs_ids": all_clicks["document_id"].values,
                                   "all_docs": all_docs[0]})
