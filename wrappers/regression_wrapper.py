@@ -6,6 +6,7 @@ from random import choice
 
 from joblib import Parallel, delayed
 
+
 class RegressionWrapper:
     '''
     Wrapper pour les classificateurs par régression. Va principalement juste overloader le score pour avoir le score

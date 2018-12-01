@@ -1,18 +1,9 @@
-from loading.oneHotEncoder import OneHotEncoder
-from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import WordVectorizer
 from loading.queryTitleDataLoader import QueryTitleDataLoader
-from wrappers.regression_wrapper import RegressionWrapper
-from scorers.coveo_scorer import coveo_score
 
-from sklearn.linear_model import LogisticRegressionCV, LinearRegression
-from sklearn.multioutput import MultiOutputRegressor
+from sklearn.linear_model import LinearRegression
 
-import numpy as np
-
-import time
-
-class NLP:
+class PoC:
     def __init__(self, load_from_numpy):
         vectWV = WordVectorizer()
         self.loader_wv = QueryTitleDataLoader(vectorizer=vectWV, data_folder_path="./data/",
