@@ -4,7 +4,7 @@ import numpy as np
 
 class QueryTitleDataLoader(DataLoader):
     def __init__(self, vectorizer, data_folder_path, numpy_folder_path, load_from_numpy, load_dummy=True):
-        super(QueryTitleDataLoader, self).__init__(vectorizer, None, None, None, data_folder_path, numpy_folder_path,
+        super(QueryTitleDataLoader, self).__init__(vectorizer, None, ["search_id", "query_expression"], ["search_id", "document_title"], data_folder_path, numpy_folder_path,
                                                    load_from_numpy, filter_no_clicks=False, load_dummy=load_dummy)
 
     def load_data_from_numpy(self):
@@ -14,12 +14,12 @@ class QueryTitleDataLoader(DataLoader):
         self.load_searches()
         self.load_clicks()
 
-        self.load_transform_data()
-        self.generate_labels()
+        self.transform()
+        self.get_y()
 
         return self.load_data_from_numpy()
 
-    def load_transform_data(self):
+    def transform(self):
         searches_train, searches_valid, searches_test, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
                                                                                                               "searches_valid",
                                                                                                               "searches_test",
@@ -53,7 +53,7 @@ class QueryTitleDataLoader(DataLoader):
                 out[(i * len(b)) + j, 1] = b[j]
         return out
 
-    def generate_labels(self):
+    def get_y(self):
         searches_train, searches_valid, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
                                                                                                "searches_valid",
                                                                                                "clicks_train",

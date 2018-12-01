@@ -16,19 +16,15 @@ class NLP:
     def __init__(self, load_from_numpy):
         vectWV = WordVectorizer()
         vectBOW = BagOfWordsVectorizer()
-        enc = OneHotEncoder()
-        self.loader_wv = QueryTitleDataLoader(vectorizer=vectWV, one_hot_encoder=enc,
-                                    data_folder_path="./data/", numpy_folder_path="./data/wv/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=True,
-                                    load_dummy=True)
-        self.loader_unfiltered = QueryTitleDataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
-                                    data_folder_path="./data/", numpy_folder_path="./data/bow_oh_unfiltered/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=False,
-                                    load_dummy=True)
-        self.loader_filtered = QueryTitleDataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
-                                    data_folder_path="./data/", numpy_folder_path="./data/bow_oh_filtered/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=True,
-                                    load_dummy=True)
+        self.loader_wv = QueryTitleDataLoader(vectorizer=vectWV, data_folder_path="./data/",
+                                              numpy_folder_path="./data/wv/", load_from_numpy=load_from_numpy,
+                                              load_dummy=True)
+        self.loader_unfiltered = QueryTitleDataLoader(vectorizer=vectBOW, data_folder_path="./data/",
+                                                      numpy_folder_path="./data/bow_oh_unfiltered/", load_from_numpy=load_from_numpy,
+                                                      load_dummy=True)
+        self.loader_filtered = QueryTitleDataLoader(vectorizer=vectBOW, data_folder_path="./data/",
+                                                    numpy_folder_path="./data/bow_oh_filtered/", load_from_numpy=load_from_numpy,
+                                                    load_dummy=True)
 
     def run_experiment(self):
         self.run_wn()
@@ -37,14 +33,10 @@ class NLP:
 
     def run_wn(self):
         print("**** WORD VECTOR ****")
-        X_train, X_valid, _, y_train, y_valid, _, all_docs_ids = self.loader_wv.load_transform_data()
+        X_train, X_valid, _, y_train, y_valid = self.loader_wv.load_transform_data()
 
-        fp = np.memmap("./essaiMemMap", dtype=bool, mode='w+', shape=X_train.shape)
-
-        fp[:] = X_train[:]
-
-        reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
-        reg.fit(fp, y_train)
+        reg = LinearRegression()
+        reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
 
