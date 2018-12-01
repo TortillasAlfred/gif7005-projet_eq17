@@ -53,8 +53,9 @@ if __name__=="__main__":
                         search_features=DataLoader.default_search_features,
                         click_features=DataLoader.default_click_features,
                         data_folder_path="../data/", numpy_folder_path="../data/bow_oh/",
-                        load_from_numpy=True)
+                        load_from_numpy=False)
 
+    loader.load_transform_data()
     searches_train = loader.load_all_from_pickle("searches_train")
     WV = WordVectorizer()
     list_wv = WV.generate_list_word_vectors(searches_train.query_expression.values)
