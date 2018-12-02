@@ -18,8 +18,8 @@ class PoC:
                                     load_from_numpy=load_from_numpy, filter_no_clicks=False)
 
     def run_experiment(self):
-        self.run_qd_wrapped()
         self.run_normal_wrapped()
+        self.run_qd_wrapped()
 
     def run_qd_wrapped(self):
         print("**** QD-WRAPPED LIN REG ****")
