@@ -52,7 +52,8 @@ class QueryDocRegressionWrapper:
         next_idx = 0
 
         for i, y_i in enumerate(y):
-            print(next_idx)
+            if next_idx % 5000 == 0: 
+                print(next_idx) 
             for doc_number in y_i:
                 X_taken.add(i)
                 docs_taken.add(doc_number)
@@ -64,7 +65,8 @@ class QueryDocRegressionWrapper:
         docs_left = [d_i for d_i in range(n_docs) if d_i not in docs_taken]
 
         for _ in range(n_neg):
-            print(next_idx)
+            if next_idx % 5000 == 0: 
+                print(next_idx)
             if len(X_left) == 0:
                 X_left = list(range(X.shape[0]))
             if len(docs_left) == 0:
