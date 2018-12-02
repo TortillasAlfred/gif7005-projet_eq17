@@ -21,7 +21,7 @@ class LR:
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/wv/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=True)
+                                    load_from_numpy=load_from_numpy, filter_no_clicks=False)
         self.loader_unfiltered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
@@ -39,7 +39,7 @@ class LR:
         self.run_filtered()
 
     def run_wn(self):
-        print("**** WORD VECTOR ****")
+        print("**** WORD VECTOR UNFILTERED ****")
         X_train, X_valid, _, y_train, y_valid, _, all_docs_ids = self.loader_wv.load_transform_data()
 
         reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
