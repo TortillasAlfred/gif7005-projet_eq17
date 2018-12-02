@@ -52,9 +52,9 @@ class QueryDocRegressionWrapper:
         next_idx = 0
 
         for i, y_i in enumerate(y):
-            if next_idx % 5000 == 0: 
-                print(next_idx) 
             for doc_number in y_i:
+                if next_idx % 5000 == 0: 
+                    print(next_idx) 
                 X_taken.add(i)
                 docs_taken.add(doc_number)
                 X_reg[next_idx] = np.hstack((X[i], self.docs[doc_number]))
