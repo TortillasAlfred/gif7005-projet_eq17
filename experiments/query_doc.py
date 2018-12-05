@@ -5,8 +5,7 @@ from loading.oneHotEncoder import OneHotEncoder
 from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from wrappers.regression_wrapper import RegressionWrapper
 
-from sklearn.linear_model import LinearRegression, LogisticRegression, SGDRegressor, PassiveAggressiveRegressor, Ridge
-from sklearn.multioutput import MultiOutputRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression
 
 class PoC:
     def __init__(self, load_from_numpy):
@@ -20,7 +19,7 @@ class PoC:
 
     def run_experiment(self):
         # self.run_normal_wrapped()
-        self.run_qd_wrapped_all_dataset()
+        self.run_qd_wrapped()
 
     def run_qd_wrapped_all_dataset(self):
         print("**** QD-WRAPPED PAR REG ALL DATASET ****")
@@ -29,7 +28,7 @@ class PoC:
                                                                                           "y_train", "y_valid",
                                                                                           "all_docs")
 
-        reg = QueryDocRegressionWrapper(PassiveAggressiveRegressor(verbose=1), all_docs, proportion_neg_examples=-1)
+        reg = QueryDocRegressionWrapper(LogisticRegression(), all_docs, proportion_neg_examples=1)
         reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))

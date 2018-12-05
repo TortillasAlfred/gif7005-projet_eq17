@@ -33,46 +33,10 @@ class QueryDocRegressionWrapper:
         self.n_jobs = n_jobs
         self.n_predicted_per_sample = n_predicted_per_sample
         self.random_state = 42
-        self.fit = self.__fit_all_dataset if self.proportion_neg_examples == -1 else self.__fit_subset
+        self.fit = self.__fit_all_dataset if self.proportion_neg_examples = -1 else self.__fit_subset
         
     def __fit_all_dataset(self, X, y):
         print("BEGIN FIT")
-        slices = self.create_slices(X)
-
-        print("Dataset has been split into {} slices".format(len(slices)))
-
-        for i, s in enumerate(slices):
-            print("Slice number {}".format(i + 1))
-            X_reg, y_reg = self.get_slice_reg(X, y, s)
-            self.clf.partial_fit(X_reg, y_reg)
-
-    def create_slices(self, X):
-        n_docs = self.docs.shape[0]
-        vector_size = X.shape[1] + self.docs.shape[1]
-        entry_size = np.float16().nbytes
-        max_batch_size = 4e9
-
-        n = int(max_batch_size/(n_docs * vector_size * entry_size))
-
-        return np.array_split(list(range(X.shape[0])), ceil(X.shape[0]/n))
-
-    def get_slice_reg(self, X, y, s):
-        n_docs = self.docs.shape[0]
-
-        X_reg = np.zeros(shape=(len(s) * n_docs, X.shape[1] + self.docs.shape[1]), dtype="float16")
-        y_reg = np.zeros(shape=(len(s) * n_docs, ), dtype=bool)
-
-        X_slice = X[s]
-        y_slice = y[s]
-        next_idx = 0
-        for i, x_i in enumerate(X_slice):
-            y_i = y_slice[i]
-            for doc_i in range(n_docs):
-                X_reg[next_idx] = np.hstack((x_i, self.docs[doc_i]))
-                y_reg[next_idx] = doc_i in y_i
-                next_idx += 1
-
-        return X_reg, y_reg
 
     def __fit_subset(self, X, y):
         print("BEGIN FIT")
