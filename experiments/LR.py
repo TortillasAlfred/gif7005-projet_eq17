@@ -5,7 +5,7 @@ from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
 from scorers.coveo_scorer import coveo_score
 
-from sklearn.linear_model import LogisticRegressionCV, LinearRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.multioutput import MultiOutputRegressor
 
 import numpy as np
@@ -21,7 +21,7 @@ class LR:
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/wv/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=False)
+                                    load_from_numpy=load_from_numpy, filter_no_clicks=True)
         self.loader_unfiltered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
@@ -84,12 +84,12 @@ class LR:
         del y_train
         X_valid, y_valid = self.loader_wv.load_all_from_numpy("X_valid", "y_valid")
         print("BEGIN PREDICT VALID")
-        print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))    
+        print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
 
     def run_multioutput_lin_reg_balanced_BoW(self):
         print("**** MULTIOUTPUT LR BALANCED BoW ****")
         self.loader_unfiltered.load_transform_data()
-        X_train, y_train, all_docs = self.loader_unfiltered.load_all_from_numpy("X_train", "y_train", "all_docs")
+        X_train, y_train, all_docs = self.loader_filtered.load_all_from_numpy("X_train", "y_train", "all_docs")
 
         reg = MultiOutputRegressorWrapper(LinearRegression(), n_jobs=-1, total_outputs=all_docs.shape[0])
         del all_docs

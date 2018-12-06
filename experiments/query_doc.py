@@ -19,7 +19,7 @@ class PoC:
 
     def run_experiment(self):
         # self.run_normal_wrapped()
-        self.run_qd_wrapped()
+        self.run_qd_wrapped_all_dataset()
 
     def run_qd_wrapped_all_dataset(self):
         print("**** QD-WRAPPED PAR REG ALL DATASET ****")
