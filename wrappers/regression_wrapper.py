@@ -1,8 +1,12 @@
 import numpy as np
 
 from sklearn.model_selection import GridSearchCV, PredefinedSplit
+from sklearn.utils.class_weight import compute_sample_weight
+from sklearn.base import clone
 
 from scorers.coveo_scorer import coveo_score
+
+from joblib import Parallel, delayed
 
 
 class RegressionWrapper:
@@ -48,3 +52,37 @@ class RegressionWrapper:
                 new_y[idx, y_i_j] = 1
 
         return new_y
+
+class MultiOutputRegressorWrapper(RegressionWrapper):
+    def __init__(self, clf, total_outputs, n_jobs=4, n_predicted_per_sample=5):
+        RegressionWrapper.__init__(self, clf=clf, total_outputs=total_outputs, n_predicted_per_sample=n_predicted_per_sample)
+        self.n_jobs = n_jobs
+        
+    def fit(self, X, y):
+        y_reg = self.make_regression_y(y)
+
+        self.classifiers = Parallel(n_jobs=self.n_jobs, verbose=10)\
+                                (delayed(self.train_model)(X, y_reg[:, i]) for i in range(self.total_outputs))
+
+    def train_model(self, X, y):
+        sample_weights = compute_sample_weight(class_weight="balanced", y=y)
+        clf_new = clone(self.clf)
+        return clf_new.fit(X, y, sample_weights)
+    
+    def predict(self, X):
+        X_slices = np.array_split(X, int(X.shape[0]/1000))
+
+        y_predict = np.asarray(Parallel(n_jobs=self.n_jobs, verbose=10)(delayed(self.predict_x)(x_slice) for x_slice in X_slices))
+
+        return np.vstack([y for y in y_predict])
+
+    def predict_x(self, x):
+        y_predict = np.asarray([clf.predict(x) for clf in self.classifiers]).T
+
+        return np.argpartition(y_predict, -self.n_predicted_per_sample)[:, -self.n_predicted_per_sample:]
+
+
+    def score(self, X, y_true):
+        y_pred = self.predict(X)
+
+        return coveo_score(y_true, y_pred)
