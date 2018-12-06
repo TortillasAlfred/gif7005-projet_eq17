@@ -23,9 +23,8 @@ class RegressionWrapper:
     Le RegressionWrapper sera aussi utilisé par un éventuel réseau de neurones.
     '''
 
-    def __init__(self, clf, total_outputs, n_predicted_per_sample=5):
+    def __init__(self, clf, total_outputs):
         self.clf = clf
-        self.n_predicted_per_sample = n_predicted_per_sample
         self.total_outputs = total_outputs
 
     def fit(self, X_train, y_train):
@@ -37,12 +36,15 @@ class RegressionWrapper:
 
         return coveo_score(y_true, y_pred)
 
-    def predict(self, X):
-        # Va retourner une matrice de taille [X.shape[0], self.n_predicted_per_sample]
+    def predict(self, X, n_predicted_per_sample=5):
+        # Va retourner une matrice de taille [X.shape[0], n_predicted_per_sample]
         y_predict_raw = self.clf.predict(X)
-        y_predict = np.argpartition(y_predict_raw, -self.n_predicted_per_sample)[:, -self.n_predicted_per_sample:]
 
-        return y_predict
+        if n_predicted_per_sample == -1:
+            return y_predict_raw
+        else:
+            return np.argpartition(y_predict_raw, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
+
 
     def make_regression_y(self, y):
         new_y = np.zeros((y.shape[0], self.total_outputs), dtype=bool)
