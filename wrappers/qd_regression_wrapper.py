@@ -8,6 +8,8 @@ from random import choice
 
 from joblib import Parallel, delayed
 
+from math import ceil
+
 
 class QueryDocRegressionWrapper:
     '''
@@ -31,8 +33,12 @@ class QueryDocRegressionWrapper:
         self.n_jobs = n_jobs
         self.n_predicted_per_sample = n_predicted_per_sample
         self.random_state = 42
+        self.fit = self.__fit_all_dataset if self.proportion_neg_examples = -1 else self.__fit_subset
+        
+    def __fit_all_dataset(self, X, y):
+        print("BEGIN FIT")
 
-    def fit(self, X, y):
+    def __fit_subset(self, X, y):
         print("BEGIN FIT")
         X_reg, y_reg = self.create_combinations(X, y)
         self.clf.fit(X_reg, y_reg)

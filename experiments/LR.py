@@ -2,7 +2,7 @@ from loading.oneHotEncoder import OneHotEncoder
 from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import WordVectorizer
 from loading.dataLoader import DataLoader
-from wrappers.regression_wrapper import RegressionWrapper
+from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
 from scorers.coveo_scorer import coveo_score
 
 from sklearn.linear_model import LogisticRegressionCV, LinearRegression
@@ -34,9 +34,11 @@ class LR:
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
 
     def run_experiment(self):
-        self.run_wn()
-        self.run_unfiltered()
-        self.run_filtered()
+        # self.run_wn()
+        # self.run_unfiltered()
+        # self.run_filtered()
+        self.run_multioutput_lin_reg_balanced_wv()
+        # self.run_multioutput_lin_reg_balanced_BoW()
 
     def run_wn(self):
         print("**** WORD VECTOR UNFILTERED ****")
@@ -63,4 +65,40 @@ class LR:
         reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
         reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
+        print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
+    
+
+    def run_multioutput_lin_reg_balanced_wv(self):
+        # ROule en 90 min sur mon PC
+        print("**** MULTIOUTPUT LR BALANCED WV ****")
+        self.loader_wv.load_transform_data()
+        X_train, y_train, all_docs = self.loader_wv.load_all_from_numpy("X_train", "y_train", "all_docs")
+
+        reg = MultiOutputRegressorWrapper(LinearRegression(), n_jobs=-1, total_outputs=all_docs.shape[0])
+        del all_docs
+        print("BEGIN FIT")
+        reg.fit(X_train, y_train)
+        print("BEGIN PREDICT TRAIN")
+        print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
+        del X_train
+        del y_train
+        X_valid, y_valid = self.loader_wv.load_all_from_numpy("X_valid", "y_valid")
+        print("BEGIN PREDICT VALID")
+        print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))    
+
+    def run_multioutput_lin_reg_balanced_BoW(self):
+        print("**** MULTIOUTPUT LR BALANCED BoW ****")
+        self.loader_unfiltered.load_transform_data()
+        X_train, y_train, all_docs = self.loader_unfiltered.load_all_from_numpy("X_train", "y_train", "all_docs")
+
+        reg = MultiOutputRegressorWrapper(LinearRegression(), n_jobs=-1, total_outputs=all_docs.shape[0])
+        del all_docs
+        print("BEGIN FIT")
+        reg.fit(X_train, y_train)
+        print("BEGIN PREDICT TRAIN")
+        print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
+        del X_train
+        del y_train
+        X_valid, y_valid = self.loader_wv.load_all_from_numpy("X_valid", "y_valid")
+        print("BEGIN PREDICT VALID")
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
