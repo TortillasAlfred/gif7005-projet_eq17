@@ -37,8 +37,8 @@ class LR:
         # self.run_wn()
         # self.run_unfiltered()
         # self.run_filtered()
-        # self.run_multioutput_lin_reg_balanced_wv()
-        self.run_multioutput_lin_reg_balanced_BoW()
+        self.run_multioutput_lin_reg_balanced_wv()
+        # self.run_multioutput_lin_reg_balanced_BoW()
 
     def run_wn(self):
         print("**** WORD VECTOR UNFILTERED ****")
@@ -53,7 +53,7 @@ class LR:
         print("**** UNFILTERED EXP ****")
         X_train, X_valid, _, y_train, y_valid, _, all_docs_ids = self.loader_unfiltered.load_transform_data()
 
-        reg = RegressionWrapper(LogisticRegression(), total_outputs=all_docs_ids.shape[0])
+        reg = RegressionWrapper(LinearRegression(), total_outputs=all_docs_ids.shape[0])
         reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
@@ -74,7 +74,7 @@ class LR:
         self.loader_wv.load_transform_data()
         X_train, y_train, all_docs = self.loader_wv.load_all_from_numpy("X_train", "y_train", "all_docs")
 
-        reg = MultiOutputRegressorWrapper(Lo, n_jobs=-1, total_outputs=all_docs.shape[0])
+        reg = MultiOutputRegressorWrapper(LinearRegression(), n_jobs=-1, total_outputs=all_docs.shape[0])
         del all_docs
         print("BEGIN FIT")
         reg.fit(X_train, y_train)
