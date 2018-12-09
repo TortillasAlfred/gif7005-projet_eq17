@@ -2,11 +2,11 @@ from loading.dataLoader import DataLoader
 import pandas as pds
 import numpy as np
 import itertools
-from loading.wordVectorizer import WordVectorizer
 
 
 class QueryDocBatchDataLoader(DataLoader):
-    def __init__(self, vectorizer, batch_size, data_folder_path, numpy_folder_path, load_from_numpy, load_dummy=True):
+    def __init__(self, vectorizer, batch_size, data_folder_path, numpy_folder_path,
+                 load_from_numpy, load_dummy=True, generate_pairs=False):
         super(QueryDocBatchDataLoader, self).__init__(vectorizer=vectorizer, one_hot_encoder=None,
                                                       search_features=DataLoader.default_search_features,
                                                       click_features=DataLoader.default_click_features,
@@ -16,7 +16,10 @@ class QueryDocBatchDataLoader(DataLoader):
                                                       load_dummy=load_dummy)
         self.tr_q_exps_train, self.tr_q_exps_valid, self.tr_q_exps_test = self.load_transform_queries()
         self.tr_doc_titles = self.load_transform_doc_titles()
-        self.pairs = self.get_pairs()
+        if generate_pairs:
+            self.pairs = self.generate_pairs()
+        else:
+            self.pairs = self.load_pairs()
         self.batch_size = batch_size
         self.current_batch = 0
 
@@ -41,11 +44,11 @@ class QueryDocBatchDataLoader(DataLoader):
         doc_titles.fillna("", inplace=True)
         return np.unique(doc_titles.ravel())
 
-    def get_pairs(self):
+    def generate_pairs(self):
         queries_idx = np.asarray(range(self.tr_q_exps_train.shape[0]))
         docs_idx = np.asarray(range(self.tr_doc_titles.shape[0]))
-        combinations = np.memmap(self.data_folder_path + "random_pairs.npy", dtype=np.uint32, mode="w+",
-                                 shape=(queries_idx.shape[0] * docs_idx.shape[0], 2))
+        combinations = np.memmap(self.numpy_folder_path + "random_pairs.npy", dtype=np.uint32, mode="w+",
+                                 shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
         product = itertools.product(queries_idx, docs_idx)
         counter = 0
         for pair in product:
@@ -53,6 +56,10 @@ class QueryDocBatchDataLoader(DataLoader):
             counter += 1
         np.random.shuffle(combinations)
         return combinations
+
+    def load_pairs(self):
+        return np.memmap(self.numpy_folder_path + "random_pairs.npy", dtype=np.uint32, mode='r',
+                  shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
 
     def get_next_batch(self):
         next_batch = (None, None)
