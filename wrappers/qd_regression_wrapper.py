@@ -33,12 +33,14 @@ class QueryDocRegressionWrapper:
         self.n_jobs = n_jobs
         self.n_predicted_per_sample = n_predicted_per_sample
         self.random_state = 42
-        self.fit = self.__fit_all_dataset if self.proportion_neg_examples == -1 else self.__fit_subset
-        
-    def __fit_all_dataset(self, X, y):
-        print("BEGIN FIT")
 
-    def __fit_subset(self, X, y):
+    def partial_fit(self, X, y):
+        if self.proportion_neg_examples != -1:
+            raise AssertionError("partial_fit was made to be used when proportion_neg_examples is -1")
+        print("BEGIN PARTIAL FIT")
+        self.clf.partial_fit(X, y)
+
+    def fit(self, X, y):
         print("BEGIN FIT")
         X_reg, y_reg = self.create_combinations(X, y)
         self.clf.fit(X_reg, y_reg)
@@ -59,8 +61,8 @@ class QueryDocRegressionWrapper:
 
         for i, y_i in enumerate(y):
             for doc_number in y_i:
-                if next_idx % 5000 == 0: 
-                    print(next_idx) 
+                if next_idx % 5000 == 0:
+                    print(next_idx)
                 X_taken.add(i)
                 docs_taken.add(doc_number)
                 X_reg[next_idx] = np.hstack((X[i], self.docs[doc_number]))
@@ -71,7 +73,7 @@ class QueryDocRegressionWrapper:
         docs_left = [d_i for d_i in range(n_docs) if d_i not in docs_taken]
 
         for _ in range(n_neg):
-            if next_idx % 5000 == 0: 
+            if next_idx % 5000 == 0:
                 print(next_idx)
             if len(X_left) == 0:
                 X_left = list(range(X.shape[0]))
