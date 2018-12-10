@@ -64,12 +64,12 @@ class QueryDocBatchDataLoader(DataLoader):
     def get_next_batch(self):
         next_batch = (None, None)
         if self.current_batch < (self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0]) / self.batch_size:
-            start_idx = self.current_batch * self.batch_size
-            end_idx = start_idx + self.batch_size
+            start_idx = int(self.current_batch * self.batch_size)
+            end_idx = int(start_idx + self.batch_size)
             next_pairs = self.pairs[start_idx:end_idx]
             next_batch = (self.__get_batch_X(next_pairs), self.__get_batch_y(next_pairs))
             self.current_batch += 1
-        return next_batch
+        return next_batch   
 
     def __get_batch_X(self, pairs):
         X = np.empty(shape=(pairs.shape[0],self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1]), dtype="float16")
