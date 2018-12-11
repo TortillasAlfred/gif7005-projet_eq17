@@ -5,18 +5,20 @@ import itertools
 
 
 class QueryDocBatchDataLoader(DataLoader):
-    def __init__(self, vectorizer, batch_size, data_folder_path, numpy_folder_path,
-                 load_from_numpy, load_dummy=True, generate_pairs=False):
-        super(QueryDocBatchDataLoader, self).__init__(vectorizer=vectorizer, one_hot_encoder=None,
+    def __init__(self, vectorizer, encoder, batch_size, data_folder_path, numpy_folder_path,
+                 load_from_numpy, filter_no_clicks, load_dummy=True, generate_pairs=False):
+        super(QueryDocBatchDataLoader, self).__init__(vectorizer=vectorizer, one_hot_encoder=encoder,
                                                       search_features=DataLoader.default_search_features,
                                                       click_features=DataLoader.default_click_features,
                                                       data_folder_path=data_folder_path,
                                                       numpy_folder_path=numpy_folder_path,
-                                                      load_from_numpy=load_from_numpy, filter_no_clicks=False,
+                                                      load_from_numpy=load_from_numpy, filter_no_clicks=filter_no_clicks,
                                                       load_dummy=load_dummy)
         self.tr_q_exps_train, self.tr_q_exps_valid, self.tr_q_exps_test = self.__load_transform_queries()
         self.tr_doc_titles = self.__load_transform_doc_titles()
-        self.tr_y = self.load_all_from_numpy("y_train")
+        self.tr_y = self.__load_transform_y()
+        if filter_no_clicks:
+            self.filter_data()
         if generate_pairs:
             self.pairs = self.__generate_pairs()
         else:
@@ -41,6 +43,10 @@ class QueryDocBatchDataLoader(DataLoader):
         doc_titles = self.__get_doc_titles(clicks_train, clicks_valid)
         return self.features_transformers["document_title"](doc_titles)[0]
 
+    def __load_transform_y(self):
+        self.get_y()
+        return self.load_all_from_numpy("y_train")
+
     def __get_doc_titles(self, clicks_train, clicks_valid):
         all_clicks = pds.concat([clicks_train, clicks_valid])
         doc_titles = all_clicks["document_title"]
@@ -50,7 +56,7 @@ class QueryDocBatchDataLoader(DataLoader):
     def __generate_pairs(self):
         queries_idx = np.asarray(range(self.tr_q_exps_train.shape[0]))
         docs_idx = np.asarray(range(self.tr_doc_titles.shape[0]))
-        combinations = np.memmap(self.numpy_folder_path + "random_pairs.npy", dtype=np.uint32, mode="w+",
+        combinations = np.memmap(self.numpy_folder_path + "random_pairs_filtered.npy", dtype=np.uint32, mode="w+",
                                  shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
         product = itertools.product(queries_idx, docs_idx)
         counter = 0
@@ -61,7 +67,7 @@ class QueryDocBatchDataLoader(DataLoader):
         return combinations
 
     def __load_pairs(self):
-        return np.memmap(self.numpy_folder_path + "random_pairs.npy", dtype=np.uint32, mode='r',
+        return np.memmap(self.numpy_folder_path + "random_pairs_filtered.npy", dtype=np.uint32, mode='r',
                   shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
 
     def get_next_batch(self):
@@ -85,6 +91,12 @@ class QueryDocBatchDataLoader(DataLoader):
             y[i] = pair[1] in self.tr_y[pair[0]]
 
         return X, y
+
+    def filter_data(self):
+        filter_train = np.where([len(col) > 0 for col in self.tr_y])
+        self.tr_q_exps_train = self.tr_q_exps_train[filter_train]
+        self.tr_y = self.tr_y[filter_train]
+
 
     def next_epoch(self):
         self.current_batch = 0

@@ -37,7 +37,7 @@ class QueryDocRegressionWrapper:
     def partial_fit(self, X, y):
         if self.proportion_neg_examples != -1:
             raise AssertionError("partial_fit was made to be used when proportion_neg_examples is -1")
-        print("BEGIN PARTIAL FIT")
+        
         self.clf.partial_fit(X, y)
 
     def fit(self, X, y):

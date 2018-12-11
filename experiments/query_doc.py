@@ -16,12 +16,10 @@ class PoC:
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/qd_wv/",
-                                    load_from_numpy=load_from_numpy, filter_no_clicks=False)
-        self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, batch_size=4e4, data_folder_path="./data/",
+                                    load_from_numpy=load_from_numpy, filter_no_clicks=True)
+        self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, encoder=enc, batch_size=4e4, data_folder_path="./data/",
                                                     numpy_folder_path="./data/qd_wv/", load_from_numpy=load_from_numpy,
-                                                    load_dummy=False, generate_pairs=False)
-        if not load_from_numpy: 
-            self.loader_wv.load_transform_data()
+                                                    filter_no_clicks=True, load_dummy=False, generate_pairs=False)
 
     def run_experiment(self):
         # self.run_normal_wrapped()
