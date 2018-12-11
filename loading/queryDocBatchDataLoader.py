@@ -2,6 +2,7 @@ from loading.dataLoader import DataLoader
 import pandas as pds
 import numpy as np
 import itertools
+from sklearn.utils.class_weight import compute_class_weight
 
 
 class QueryDocBatchDataLoader(DataLoader):
@@ -101,3 +102,6 @@ class QueryDocBatchDataLoader(DataLoader):
     def next_epoch(self):
         self.current_batch = 0
         self.current_epoch += 1
+
+    def get_class_weights(self):
+        return compute_class_weight("balanced", np.unique(self.tr_y), self.tr_y)
