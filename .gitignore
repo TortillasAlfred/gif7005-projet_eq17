@@ -118,4 +118,6 @@ data/coveo_clicks_valid.csv
 
 # Generated Data
 *.npy
+!data/qd_wv/random_pairs.npy
+!data/qd_wv/random_pairs_filtered.npy
 *.pck
