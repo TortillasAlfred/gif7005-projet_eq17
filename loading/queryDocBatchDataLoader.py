@@ -2,7 +2,6 @@ from loading.dataLoader import DataLoader
 import pandas as pds
 import numpy as np
 import itertools
-from sklearn.utils.class_weight import compute_class_weight
 
 
 class QueryDocBatchDataLoader(DataLoader):
@@ -17,7 +16,7 @@ class QueryDocBatchDataLoader(DataLoader):
                                                       load_dummy=load_dummy)
         self.tr_q_exps_train, self.tr_q_exps_valid, self.tr_q_exps_test = self.__load_transform_queries()
         self.tr_doc_titles = self.__load_transform_doc_titles()
-        self.tr_y = self.__load_transform_y()
+        self.tr_y, self.valid_y = self.__load_transform_y()
         if filter_no_clicks:
             self.filter_data()
         if generate_pairs:
@@ -46,7 +45,7 @@ class QueryDocBatchDataLoader(DataLoader):
 
     def __load_transform_y(self):
         self.get_y()
-        return self.load_all_from_numpy("y_train")
+        return self.load_all_from_numpy("y_train"), self.load_all_from_numpy("y_valid")
 
     def __get_doc_titles(self, clicks_train, clicks_valid):
         all_clicks = pds.concat([clicks_train, clicks_valid])
@@ -98,10 +97,24 @@ class QueryDocBatchDataLoader(DataLoader):
         self.tr_q_exps_train = self.tr_q_exps_train[filter_train]
         self.tr_y = self.tr_y[filter_train]
 
+        filter_valid = np.where([len(col) > 0 for col in self.valid_y])
+        self.tr_q_exps_valid = self.tr_q_exps_valid[filter_valid]
+        self.valid_y = self.valid_y[filter_valid]
+
 
     def next_epoch(self):
         self.current_batch = 0
         self.current_epoch += 1
 
     def get_class_weights(self):
-        return compute_class_weight("balanced", np.unique(self.tr_y), self.tr_y)
+        n_pos = np.sum([len(col) for col in self.tr_y])
+        n_samples = self.tr_y.shape[0] * self.tr_doc_titles.shape[0]
+        n_neg = n_samples - n_pos
+
+        weight_pos = n_samples/(2 * n_pos)
+        weight_neg = n_samples/(2 * n_neg)
+
+        return {False: weight_neg, True: weight_pos}
+
+    def get_X_and_y(self):
+        return self.tr_q_exps_train, self.tr_q_exps_valid, self.tr_y, self.valid_y

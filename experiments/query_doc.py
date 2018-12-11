@@ -7,6 +7,7 @@ from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from wrappers.regression_wrapper import RegressionWrapper
 
 from sklearn.linear_model import LinearRegression, SGDRegressor
+from sklearn.neural_network import MLPRegressor
 
 class PoC:
     def __init__(self, load_from_numpy):
@@ -30,15 +31,15 @@ class PoC:
         print("**** QD-WRAPPED PAR REG ALL DATASET ****")
         all_docs = self.loader_wv.load_all_from_numpy("all_docs")
 
-        reg = QueryDocRegressionWrapper(SGDRegressor(), all_docs, proportion_neg_examples=-1)
+        reg = QueryDocRegressionWrapper(SGDRegressor(verbose=1), all_docs, class_weights=self.batch_loader.get_class_weights(), proportion_neg_examples=-1)
+
         while True:
             partial_X_train, partial_y_train = self.batch_loader.get_next_batch()
             if partial_X_train is None or partial_y_train is None:
                 break
             reg.partial_fit(partial_X_train, partial_y_train)
 
-        X_train, X_valid, y_train, y_valid = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
-                                                                                          "y_train", "y_valid")
+        X_train, X_valid, y_train, y_valid = self.batch_loader.get_X_and_y()
 
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
