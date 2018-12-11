@@ -16,12 +16,15 @@ class QueryDocBatchDataLoader(DataLoader):
                                                       load_dummy=load_dummy)
         self.tr_q_exps_train, self.tr_q_exps_valid, self.tr_q_exps_test = self.__load_transform_queries()
         self.tr_doc_titles = self.__load_transform_doc_titles()
+        self.tr_y = self.load_all_from_numpy("y_train")
         if generate_pairs:
             self.pairs = self.__generate_pairs()
         else:
             self.pairs = self.__load_pairs()
         self.batch_size = batch_size
         self.current_batch = 0
+        self.current_epoch = 1
+        self.num_batches = int((self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0]) / self.batch_size)
 
     def __load_transform_queries(self):
         self.load_searches()
@@ -63,32 +66,26 @@ class QueryDocBatchDataLoader(DataLoader):
 
     def get_next_batch(self):
         next_batch = (None, None)
-        if self.current_batch < (self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0]) / self.batch_size:
+        if self.current_batch <= self.num_batches:
             start_idx = int(self.current_batch * self.batch_size)
             end_idx = int(start_idx + self.batch_size)
             next_pairs = self.pairs[start_idx:end_idx]
-            next_batch = (self.__get_batch_X(next_pairs), self.__get_batch_y(next_pairs))
+            next_batch = self.__get_batch(next_pairs)
             self.current_batch += 1
-        return next_batch   
 
-    def __get_batch_X(self, pairs):
+        print("Epoch {}, Batch {}/{}".format(self.current_epoch, self.current_batch, self.num_batches))
+        return next_batch
+
+    def __get_batch(self, pairs):
         X = np.empty(shape=(pairs.shape[0],self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1]), dtype="float16")
+        y = np.empty(shape=(pairs.shape[0], ), dtype=bool)
+
         for i, pair in enumerate(pairs):
             X[i] = np.hstack((self.tr_q_exps_train[pair[0]], self.tr_doc_titles[pair[1]]))
-        return X
+            y[i] = pair[1] in self.tr_y[pair[0]]
 
-    def __get_batch_y(self, pairs):
-        searches_train, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train", "clicks_train", "clicks_valid")
+        return X, y
 
-        doc_titles = self.__get_doc_titles(clicks_train, clicks_valid)
-        clicked_doc_titles_for_each_search = []
-        for s_id in searches_train.loc[:, "search_id"]:
-            titles = clicks_train.loc[clicks_train.loc[:, "search_id"] == s_id, "document_title"]
-            titles.fillna("", inplace=True)
-            clicked_doc_titles_for_each_search.append(titles.ravel())
-
-        y = np.zeros(shape=(pairs.shape[0],), dtype=bool)
-        for i, pair in enumerate(pairs):
-            if doc_titles[pair[1]] in clicked_doc_titles_for_each_search[pair[0]]:
-                y[i] = True
-        return y
+    def next_epoch(self):
+        self.current_batch = 0
+        self.current_epoch += 1

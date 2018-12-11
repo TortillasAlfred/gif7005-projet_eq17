@@ -20,7 +20,7 @@ class PoC:
         self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, batch_size=4e4, data_folder_path="./data/",
                                                     numpy_folder_path="./data/qd_wv/", load_from_numpy=load_from_numpy,
                                                     load_dummy=False, generate_pairs=False)
-        if !load_from_numpy: 
+        if not load_from_numpy: 
             self.loader_wv.load_transform_data()
 
     def run_experiment(self):
