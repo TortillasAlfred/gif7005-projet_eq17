@@ -6,9 +6,14 @@ from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.oneHotEncoder import OneHotEncoder
 from loading.dataLoader import DataLoader
 
+MAX_QUERY_LENGTH = 20
+
 
 class WordVectorizer(object):
-    def generate_list_word_vectors(self, queries):
+    def __init__(self):
+        self.nlp = spacy.load("en_vectors_web_lg")
+
+    def generate_dict_word_vectors(self, queries):
         wv = {}
         for query in queries:
             doc = self.nlp(str(query))
@@ -17,6 +22,26 @@ class WordVectorizer(object):
                 if token.has_vector:
                     exp.append(token.vector)
             wv[query] = exp
+        return wv
+
+    def generate_matrix_word_vectors(self, queries):
+        queries = np.array(queries)
+        wv = np.zeros((queries.size, MAX_QUERY_LENGTH, 300))
+        for i in range(queries.size):
+            doc = self.nlp(str(queries[i]))
+            j=0
+            for token in doc:
+                if token.has_vector and j < MAX_QUERY_LENGTH:
+                    wv[i, j] = token.vector
+                j += 1
+        return wv
+
+    def generate_sentence_vector(self, queries):
+        queries = np.array(queries)
+        wv = np.zeros((queries.size, 300))
+        for i in range(queries.size):
+            doc = self.nlp(str(queries[i]))
+            wv[i] = doc.vector
         return wv
 
     def generate_avg_word_vectors(self, queries):
@@ -56,5 +81,6 @@ if __name__=="__main__":
     loader.load_transform_data()
     searches_train = loader.load_all_from_pickle("searches_train")
     WV = WordVectorizer()
-    list_wv = WV.generate_list_word_vectors(searches_train.query_expression.values)
-    avg_wv = WV.generate_avg_word_vectors(searches_train.query_expression.values)
+    test = WV.generate_matrix_word_vectors(searches_train.query_expression.values)
+    test2 = WV.generate_sentence_vector(searches_train.query_expression.values)
+    print("test")
