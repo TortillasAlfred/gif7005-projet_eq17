@@ -106,8 +106,18 @@ venv.bak/
 # VsCode
 .vscode/
 
-# Data
-*.csv
+# PyCharm
+.idea/
+
+# Coveo Data
+data/coveo_searches_train.csv
+data/coveo_searches_valid.csv
+data/coveo_searches_test.csv
+data/coveo_clicks_train.csv
+data/coveo_clicks_valid.csv
+
+# Generated Data
 *.npy
+!data/qd_wv/random_pairs.npy
+!data/qd_wv/random_pairs_filtered.npy
 *.pck
-.data/*
