@@ -113,7 +113,7 @@ class DictSentenceVectorizerSpacy(WordVectorizer):
 
 class DictSentenceVectorizerHM(WordVectorizer):
     def __init__(self):
-        super(WordVectorizer, self).__init__()
+        super(DictSentenceVectorizerHM, self).__init__()
 
     def fit_transform(self, data_train, *data):
         transformed_data = list()
@@ -123,8 +123,7 @@ class DictSentenceVectorizerHM(WordVectorizer):
         return transformed_data
 
 
-if __name__=="__main__":
-
+if __name__== "__main__":
     vect = BagOfWordsVectorizer()
     enc = OneHotEncoder()
     loader = DataLoader(vectorizer=vect, one_hot_encoder=enc,

@@ -1,6 +1,6 @@
 from loading.oneHotEncoder import OneHotEncoder
 from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
-from loading.wordVectorizer import WordVectorizer
+from loading.wordVectorizer import MatrixWordVectorizer
 
 from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
@@ -15,7 +15,7 @@ import time
 
 class LR:
     def __init__(self, load_from_numpy):
-        vectWV = WordVectorizer()
+        vectWV = MatrixWordVectorizer()
         vectBOW = BagOfWordsVectorizer()
         enc = OneHotEncoder()
 
