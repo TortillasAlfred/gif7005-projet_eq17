@@ -49,11 +49,18 @@ class WordVectorizer(object):
         :return: dictionary with query as key and sentence embedding as value (made by spacy)
         '''
 
-        wv = {}
+        nb_queries = len(queries)
+        wv = np.zeros([nb_queries, 300])
+        for i in range(nb_queries):
+            doc = self.nlp(str(queries[i]))
+            wv[i] = doc.vector
+        return wv
+
+        '''wv = {}
         for query in queries:
             doc = self.nlp(str(query))
             wv[query] = doc.vector
-        return wv
+        return wv.values()'''
 
     def generate_dict_sentence_vectors_avghandmade(self, queries):
         '''
@@ -105,9 +112,9 @@ class DictSentenceVectorizerSpacy(WordVectorizer):
 
     def fit_transform(self, data_train, *data):
         transformed_data = list()
-        transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(data_train))))
+        transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(list(data_train)))))
         for d in data:
-            transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(d))))
+            transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(list(d)))))
         return transformed_data
 
 
@@ -124,7 +131,7 @@ class DictSentenceVectorizerHM(WordVectorizer):
 
 
 if __name__== "__main__":
-    vect = BagOfWordsVectorizer()
+    vect = MatrixWordVectorizer()
     enc = OneHotEncoder()
     loader = DataLoader(vectorizer=vect, one_hot_encoder=enc,
                         search_features=DataLoader.default_search_features,
