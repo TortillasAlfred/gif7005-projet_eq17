@@ -10,23 +10,10 @@ from loading.oneHotEncoder import OneHotEncoder
 
 torch.manual_seed(1)
 
-lstm = nn.LSTM(20, 20)  # Input dim is 3, output dim is 3
-inputs = [torch.randn(1, 20) for _ in range(5)]  # make a sequence of length 5
-
-# initialize the hidden state.
-hidden = (torch.randn(1, 1, 20),
-          torch.randn(1, 1, 20))
-
-inputs = torch.cat(inputs).view(len(inputs), 1, -1)
-hidden = (torch.randn(1, 1, 20), torch.randn(1, 1, 20))  # clean out hidden state
-out, hidden = lstm(inputs, hidden)
-
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     return torch.tensor(idxs, dtype=torch.long)
 
-EMBEDDING_DIM = 300
-HIDDEN_DIM = 300
 
 
 class LSTMInfer(nn.Module):
@@ -82,8 +69,21 @@ documents_train = loader.load_all_from_numpy("all_docs")
 
 nb_exemples = training_data.shape[0]
 nb_doc = documents_train.shape[0]
+nb_features = training_data[0][0].shape[0]
 
-model = LSTMInfer(EMBEDDING_DIM, HIDDEN_DIM, nb_exemples, nb_exemples)
+
+'''lstm = nn.LSTM(20, 20)  # Input dim is 3, output dim is 3
+inputs = [torch.randn(1, 20) for _ in range(5)]  # make a sequence of length 5
+
+# initialize the hidden state.
+hidden = (torch.randn(1, 1, 20),
+          torch.randn(1, 1, 20))
+
+inputs = torch.cat(inputs).view(len(inputs), 1, -1)
+hidden = (torch.randn(1, 1, 20), torch.randn(1, 1, 20))  # clean out hidden state
+out, hidden = lstm(inputs, hidden)'''
+
+model = LSTMInfer(nb_features, nb_features, nb_exemples, nb_doc)
 loss_function = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
