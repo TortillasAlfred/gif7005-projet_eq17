@@ -1,4 +1,4 @@
-from loading.wordVectorizer import MatrixWordVectorizer
+from loading.wordVectorizer import MatrixWordVectorizer, DictSentenceVectorizerSpacy
 from loading.dataLoader import DataLoader
 from loading.queryDocBatchDataLoader import QueryDocBatchDataLoader
 from loading.oneHotEncoder import OneHotEncoder
@@ -11,7 +11,8 @@ from sklearn.neural_network import MLPRegressor
 
 class PoC:
     def __init__(self, load_from_numpy):
-        vectWV = MatrixWordVectorizer()
+        matrixVectWV = MatrixWordVectorizer()
+        vectWV = DictSentenceVectorizerSpacy()
         enc = OneHotEncoder()
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
