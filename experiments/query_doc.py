@@ -1,7 +1,9 @@
-from loading.wordVectorizer import WordVectorizer
+from loading.wordVectorizer import DictSentenceVectorizerSpacy, MatrixWordVectorizer
 from loading.dataLoader import DataLoader
 from loading.queryDocBatchDataLoader import QueryDocBatchDataLoader
 from loading.oneHotEncoder import OneHotEncoder
+
+from learners.cosine_similarity import MaximumCosineSimilarityRegressor
 
 from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from wrappers.regression_wrapper import RegressionWrapper
@@ -11,7 +13,7 @@ from sklearn.neural_network import MLPRegressor
 
 class PoC:
     def __init__(self, load_from_numpy):
-        vectWV = WordVectorizer()
+        vectWV = DictSentenceVectorizerSpacy()
         enc = OneHotEncoder()
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
@@ -55,3 +57,34 @@ class PoC:
         reg.fit(X_train, y_train)
         print("Coveo score on train : {}".format(reg.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(reg.score(X_valid, y_valid)))
+
+
+class CosineClassifiers:
+    def __init__(self, load_from_numpy):
+        self.load_from_numpy = load_from_numpy
+
+    def run_experiment(self):
+        self.run_qd_wrapped_all_dataset()
+
+    def run_qd_wrapped_all_dataset(self):
+        vectWV = MatrixWordVectorizer()
+        enc = OneHotEncoder()
+        self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
+                                    search_features=DataLoader.only_query,
+                                    click_features=DataLoader.default_click_features,
+                                    data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
+                                    load_from_numpy=self.load_from_numpy, filter_no_clicks=True)
+        self.loader_wv.load_transform_data()
+
+        print("**** QD-WRAPPED MAXIMUM COSINE ****")
+        all_docs = self.loader_wv.load_all_from_numpy("all_docs")
+
+        X_train, X_valid, y_train, y_valid = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                                "y_train", "y_valid")
+
+        clf = MaximumCosineSimilaryRegressor()
+
+        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
+        print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
+
+    
