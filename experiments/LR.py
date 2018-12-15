@@ -1,6 +1,7 @@
 from loading.oneHotEncoder import OneHotEncoder
 from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
-from loading.wordVectorizer import WordVectorizer
+from loading.wordVectorizer import MatrixWordVectorizer
+
 from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
 from scorers.coveo_scorer import coveo_score
@@ -14,9 +15,10 @@ import time
 
 class LR:
     def __init__(self, load_from_numpy):
-        vectWV = WordVectorizer()
+        vectWV = MatrixWordVectorizer()
         vectBOW = BagOfWordsVectorizer()
         enc = OneHotEncoder()
+
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,

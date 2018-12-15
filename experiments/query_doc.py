@@ -28,7 +28,6 @@ class PoC:
         # self.run_normal_wrapped()
         self.run_qd_wrapped_all_dataset()
 
-
     def run_qd_wrapped_all_dataset(self):
         print("**** QD-WRAPPED PAR REG ALL DATASET ****")
         all_docs = self.loader_wv.load_all_from_numpy("all_docs")
