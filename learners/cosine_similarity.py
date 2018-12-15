@@ -44,7 +44,7 @@ class MaximumCosineSimilarityRegressor(CosineSimilarityRegressor):
         super().__init__(all_docs, n_vectors_query, n_vectors_docs)
 
     def predict(self, X, n_predicted_per_sample=5):
-        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=10)(delayed(self.predict_x)
+        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=1)(delayed(self.predict_x)
                                     (x_i, n_predicted_per_sample) for x_i in X))
         
         if n_predicted_per_sample == -1:
@@ -56,3 +56,39 @@ class MaximumCosineSimilarityRegressor(CosineSimilarityRegressor):
         distances = self.compute_cosine_similarities(x_i)
 
         return np.asarray([d.max() for d in distances])
+
+class MeanCosineSimilarityRegressor(CosineSimilarityRegressor):
+    def __init__(self, all_docs, n_vectors_query, n_vectors_docs):
+        super().__init__(all_docs, n_vectors_query, n_vectors_docs)
+
+    def predict(self, X, n_predicted_per_sample=5):
+        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=1)(delayed(self.predict_x)
+                                    (x_i, n_predicted_per_sample) for x_i in X))
+        
+        if n_predicted_per_sample == -1:
+            return y_predict
+        else:
+            return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
+            
+    def predict_x(self, x_i, n_predicted_per_sample=5):
+        distances = self.compute_cosine_similarities(x_i)
+
+        return np.asarray([np.mean(d) for d in distances])
+
+class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
+    def __init__(self, all_docs, n_vectors_query, n_vectors_docs):
+        super().__init__(all_docs, n_vectors_query, n_vectors_docs)
+
+    def predict(self, X, n_predicted_per_sample=5):
+        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=1)(delayed(self.predict_x)
+                                    (x_i, n_predicted_per_sample) for x_i in X))
+        
+        if n_predicted_per_sample == -1:
+            return y_predict
+        else:
+            return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
+            
+    def predict_x(self, x_i, n_predicted_per_sample=5):
+        distances = self.compute_cosine_similarities(x_i)
+
+        return np.asarray([(np.mean(d) + d.max())/2 for d in distances])

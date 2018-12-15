@@ -3,7 +3,7 @@ from loading.dataLoader import DataLoader
 from loading.queryDocBatchDataLoader import QueryDocBatchDataLoader
 from loading.oneHotEncoder import OneHotEncoder
 
-from learners.cosine_similarity import MaximumCosineSimilarityRegressor
+from learners.cosine_similarity import MaximumCosineSimilarityRegressor, MeanCosineSimilarityRegressor, MeanMaxCosineSimilarityRegressor
 
 from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from wrappers.regression_wrapper import RegressionWrapper
@@ -63,9 +63,11 @@ class CosineClassifiers:
         self.load_from_numpy = load_from_numpy
 
     def run_experiment(self):
-        self.run_qd_wrapped_all_dataset()
+        self.run_mean_max_cosine()
+        self.run_mean_cosine()
+        self.run_max_cosine()
 
-    def run_qd_wrapped_all_dataset(self):
+    def run_max_cosine(self):
         vectWV = MatrixWordVectorizer()
         enc = OneHotEncoder()
         loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
@@ -85,7 +87,51 @@ class CosineClassifiers:
 
         clf = MaximumCosineSimilarityRegressor(all_docs, X_train.shape[1], all_docs.shape[1])
 
-        print("Coveo score on train : {}".format(clf.score(X_train[:100], y_train[:100])))
+        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
         print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
 
-    
+    def run_mean_cosine(self):
+        vectWV = MatrixWordVectorizer()
+        enc = OneHotEncoder()
+        loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
+                                    search_features=DataLoader.only_query,
+                                    click_features=DataLoader.default_click_features,
+                                    data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
+                                    load_from_numpy=self.load_from_numpy, filter_no_clicks=True)
+        loader_wv.load_transform_data()
+
+        print("**** QD-WRAPPED MEAN COSINE ****")
+        all_docs = loader_wv.load_all_from_numpy("all_docs")
+
+        X_train, X_valid, y_train, y_valid = loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                            "y_train", "y_valid")
+
+        del loader_wv, vectWV, enc
+
+        clf = MeanCosineSimilarityRegressor(all_docs, X_train.shape[1], all_docs.shape[1])
+
+        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
+        print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
+
+    def run_mean_max_cosine(self):
+        vectWV = MatrixWordVectorizer()
+        enc = OneHotEncoder()
+        loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
+                                    search_features=DataLoader.only_query,
+                                    click_features=DataLoader.default_click_features,
+                                    data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
+                                    load_from_numpy=self.load_from_numpy, filter_no_clicks=True)
+        loader_wv.load_transform_data()
+
+        print("**** QD-WRAPPED MEAN MAX COSINE ****")
+        all_docs = loader_wv.load_all_from_numpy("all_docs")
+
+        X_train, X_valid, y_train, y_valid = loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                            "y_train", "y_valid")
+
+        del loader_wv, vectWV, enc
+
+        clf = MeanMaxCosineSimilarityRegressor(all_docs, X_train.shape[1], all_docs.shape[1])
+
+        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
+        print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
