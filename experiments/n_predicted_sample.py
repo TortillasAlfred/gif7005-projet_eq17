@@ -3,6 +3,7 @@ from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import MatrixWordVectorizer
 from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
+from learners.cosine_similarity import *
 
 from scorers.coveo_scorer import coveo_score
 
@@ -24,7 +25,7 @@ class GlobalExperiment():
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
-                                    data_folder_path="./data/", numpy_folder_path="./data/wv/",
+                                    data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
         self.loader_filtered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
@@ -36,6 +37,30 @@ class GlobalExperiment():
     def run_experiment_LR(self):
         self.run_experiment(LinearRegression(), "Linear Regression")
 
+    def run_experiment_Cosine(self):
+        X_train, X_valid, y_train, y_valid, all_docs = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                                        "y_train", "y_valid", "all_docs")
+
+        clf = MaximumCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/max_train_scores", scores_train)
+        np.save("./data/max_valid_scores", scores_valid)
+
+        clf = MeanCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/mean_train_scores", scores_train)
+        np.save("./data/mean_valid_scores", scores_valid)
+
+        clf = MeanMaxCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/mean_max_train_scores", scores_train)
+        np.save("./data/mean_max_valid_scores", scores_valid)
 
     def run_experiment_LR_balanced(self):
         self.run_experiment_mop_balanced(LinearRegression(), "Linear Regression balanced")
