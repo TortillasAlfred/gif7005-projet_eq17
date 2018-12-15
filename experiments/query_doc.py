@@ -68,22 +68,24 @@ class CosineClassifiers:
     def run_qd_wrapped_all_dataset(self):
         vectWV = MatrixWordVectorizer()
         enc = OneHotEncoder()
-        self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
+        loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.only_query,
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
                                     load_from_numpy=self.load_from_numpy, filter_no_clicks=True)
-        self.loader_wv.load_transform_data()
+        loader_wv.load_transform_data()
 
         print("**** QD-WRAPPED MAXIMUM COSINE ****")
-        all_docs = self.loader_wv.load_all_from_numpy("all_docs")
+        all_docs = loader_wv.load_all_from_numpy("all_docs")
 
-        X_train, X_valid, y_train, y_valid = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
-                                                                                "y_train", "y_valid")
+        X_train, X_valid, y_train, y_valid = loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                            "y_train", "y_valid")
 
-        clf = MaximumCosineSimilaryRegressor()
+        del loader_wv, vectWV, enc
 
-        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
+        clf = MaximumCosineSimilarityRegressor(all_docs, X_train.shape[1], all_docs.shape[1])
+
+        print("Coveo score on train : {}".format(clf.score(X_train[:100], y_train[:100])))
         print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
 
     
