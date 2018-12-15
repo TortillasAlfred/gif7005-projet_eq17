@@ -56,7 +56,7 @@ class QueryDocBatchDataLoader(DataLoader):
     def __generate_pairs(self):
         queries_idx = np.asarray(range(self.tr_q_exps_train.shape[0]))
         docs_idx = np.asarray(range(self.tr_doc_titles.shape[0]))
-        combinations = np.memmap(self.numpy_folder_path + "random_pairs_filtered.npy", dtype=np.uint32, mode="w+",
+        combinations = np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode="w+",
                                  shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
         product = itertools.product(queries_idx, docs_idx)
         counter = 0
@@ -67,7 +67,7 @@ class QueryDocBatchDataLoader(DataLoader):
         return combinations
 
     def __load_pairs(self):
-        return np.memmap(self.numpy_folder_path + "random_pairs_filtered.npy", dtype=np.uint32, mode='r',
+        return np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode='r',
                   shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
 
     def get_next_batch(self):
@@ -83,7 +83,7 @@ class QueryDocBatchDataLoader(DataLoader):
         return next_batch
 
     def __get_batch(self, pairs):
-        X = np.empty(shape=(pairs.shape[0],self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1]), dtype="float16")
+        X = np.empty(shape=(pairs.shape[0], self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1]), dtype="float16")
         y = np.empty(shape=(pairs.shape[0], ), dtype=bool)
 
         for i, pair in enumerate(pairs):

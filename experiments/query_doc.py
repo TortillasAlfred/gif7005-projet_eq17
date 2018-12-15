@@ -1,4 +1,4 @@
-from loading.wordVectorizer import WordVectorizer
+from loading.wordVectorizer import DictSentenceVectorizerSpacy
 from loading.dataLoader import DataLoader
 from loading.queryDocBatchDataLoader import QueryDocBatchDataLoader
 from loading.oneHotEncoder import OneHotEncoder
@@ -11,7 +11,7 @@ from sklearn.neural_network import MLPRegressor
 
 class PoC:
     def __init__(self, load_from_numpy):
-        vectWV = WordVectorizer()
+        vectWV = DictSentenceVectorizerSpacy()
         enc = OneHotEncoder()
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
@@ -25,7 +25,6 @@ class PoC:
     def run_experiment(self):
         # self.run_normal_wrapped()
         self.run_qd_wrapped_all_dataset()
-
 
     def run_qd_wrapped_all_dataset(self):
         print("**** QD-WRAPPED PAR REG ALL DATASET ****")
