@@ -223,7 +223,6 @@ class DataLoader:
 
         self.save_all_to_numpy(**{"test_train": test_train,
                                   "test_valid": test_valid})
-
     def get_y(self):
         searches_train, searches_valid, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
                                                                                                "searches_valid",
@@ -262,9 +261,6 @@ class DataLoader:
             test_valid.append([])
             for idx in y_valid[i]:
                 test_valid[i].append(doc_vect_valid[idx])
-
-
-
 
         self.save_all_to_numpy(**{"y_train": test_train,
                                   "y_valid": test_valid})

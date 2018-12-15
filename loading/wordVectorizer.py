@@ -55,12 +55,16 @@ class WordVectorizer(object):
             doc = self.nlp(str(queries[i]))
             wv[i] = doc.vector
         return wv
+<<<<<<< HEAD
 
         '''wv = {}
         for query in queries:
             doc = self.nlp(str(query))
             wv[query] = doc.vector
         return wv.values()'''
+=======
+        
+>>>>>>> 9f9f017a8414f3503c28e740ba34ac09827a95a0
 
     def generate_dict_sentence_vectors_avghandmade(self, queries):
         '''
@@ -97,6 +101,7 @@ class MatrixWordVectorizer(WordVectorizer):
 class DictWordVectorizer(WordVectorizer):
     def __init__(self):
         super(DictWordVectorizer, self).__init__()
+<<<<<<< HEAD
 
     def fit_transform(self, data_train, *data):
         transformed_data = list()
@@ -117,6 +122,28 @@ class DictSentenceVectorizerSpacy(WordVectorizer):
             transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(list(d)))))
         return transformed_data
 
+=======
+
+    def fit_transform(self, data_train, *data):
+        transformed_data = list()
+        transformed_data.append(np.array(list(self.generate_dict_word_vectors(data_train))))
+        for d in data:
+            transformed_data.append(np.array(list(self.generate_dict_word_vectors(d))))
+        return transformed_data
+
+
+class DictSentenceVectorizerSpacy(WordVectorizer):
+    def __init__(self):
+        super(DictSentenceVectorizerSpacy, self).__init__()
+
+    def fit_transform(self, data_train, *data):
+        transformed_data = list()
+        transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(list(data_train)))))
+        for d in data:
+            transformed_data.append(np.array(list(self.generate_dict_sentence_vectors_spacy(list(d)))))
+        return transformed_data
+
+>>>>>>> 9f9f017a8414f3503c28e740ba34ac09827a95a0
 
 class DictSentenceVectorizerHM(WordVectorizer):
     def __init__(self):
