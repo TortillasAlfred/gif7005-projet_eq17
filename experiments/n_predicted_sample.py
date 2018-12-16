@@ -3,6 +3,7 @@ from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import MatrixWordVectorizer
 from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
+from learners.cosine_similarity import *
 
 from scorers.coveo_scorer import coveo_score
 
@@ -22,10 +23,11 @@ class GlobalExperiment():
         vectBOW = BagOfWordsVectorizer()
         enc = OneHotEncoder()
         self.loader_wv = DataLoader(vectorizer=vectWV, one_hot_encoder=enc,
-                                    search_features=DataLoader.default_search_features,
+                                    search_features=DataLoader.only_query,
                                     click_features=DataLoader.default_click_features,
-                                    data_folder_path="./data/", numpy_folder_path="./data/wv/",
+                                    data_folder_path="./data/", numpy_folder_path="./data/qd_wv_matrix/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
+        self.loader_wv.load_transform_data()
         self.loader_filtered = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
                                     search_features=DataLoader.default_search_features,
                                     click_features=DataLoader.default_click_features,
@@ -36,6 +38,61 @@ class GlobalExperiment():
     def run_experiment_LR(self):
         self.run_experiment(LinearRegression(), "Linear Regression")
 
+    def run_experiment_Cosine(self):
+        self.collect_results_cosine()
+        self.plot_results_cosine()
+
+    def plot_results_cosine(self):
+        s_t_max = np.load("./data/max_train_scores.npy")
+        s_v_max = np.load("./data/max_valid_scores.npy")
+        s_t_mean = np.load("./data/mean_train_scores.npy")
+        s_v_mean = np.load("./data/mean_valid_scores.npy")
+        s_t_mean_max = np.load("./data/mean_max_train_scores.npy")
+        s_v_mean_max = np.load("./data/mean_max_valid_scores.npy")
+
+        plt.plot(s_t_max, label="Train_Max")
+        plt.plot(s_v_max, label="Valid_Max")
+        plt.plot(s_t_mean, label="Train_Mean")
+        plt.plot(s_v_mean, label="Valid_Mean")
+        plt.plot(s_t_mean_max, label="Train_Mean_Max")
+        plt.plot(s_v_mean_max, label="Valid_Mean_Max")
+        
+        plt.xlabel("N_predicted_per_sample")
+        plt.ylabel("Coveo score")
+        plt.title("Métriques des différents clf de Cosine")
+
+        plt.legend()
+
+        plt.show()
+        
+
+    def collect_results_cosine(self):
+        X_train, X_valid, y_train, y_valid, all_docs = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                                        "y_train", "y_valid", "all_docs")
+
+        print("*** MAX ***")                              
+        clf = MaximumCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/max_train_scores", scores_train)
+        np.save("./data/max_valid_scores", scores_valid)
+
+        print("*** MEAN ***")
+        clf = MeanCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/mean_train_scores", scores_train)
+        np.save("./data/mean_valid_scores", scores_valid)
+
+        print("*** MEAN MAX ***")
+        clf = MeanMaxCosineSimilarityRegressor(all_docs, 20, 20)
+        scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+        scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+        
+        np.save("./data/mean_max_train_scores", scores_train)
+        np.save("./data/mean_max_valid_scores", scores_valid)
 
     def run_experiment_LR_balanced(self):
         self.run_experiment_mop_balanced(LinearRegression(), "Linear Regression balanced")
