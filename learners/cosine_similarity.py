@@ -2,7 +2,7 @@ from scorers.coveo_scorer import coveo_score
 
 from scipy.spatial.distance import cdist
 
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, dump
 
 import numpy as np
 
@@ -92,3 +92,37 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
         distances = self.compute_cosine_similarities(x_i)
 
         return np.asarray([(np.mean(d) + d.max())/2 for d in distances])
+
+
+
+class QueryDocCosineSimilarityRegressor(object):
+    def __init__(self, clf, n_vectors_query, n_vectors_docs):
+        self.clf = clf
+        self.n_vectors_query = n_vectors_query
+        self.n_vectors_docs = n_vectors_docs
+        self.n_partial_fits = 0
+
+    def partial_fit(self, X, y, class_weights):
+        similarities = np.asarray([self.compute_cosine_similarities(x_i) for x_i in X])        
+        sorted_similarities = np.sort(similarities)[:, ::-1]
+
+        self.clf.partial_fit(sorted_similarities, y, class_weights)
+
+        self.n_partial_fits += 1
+        if self.n_partial_fits % 200 == 0:
+            dump(self.clf, "./data/cosine_clf_LR_" + str(self.n_partial_fits) + ".pck")
+
+    def compute_cosine_similarities(self, x_i):
+        query = x_i[:self.n_vectors_query]
+        doc = x_i[self.n_vectors_query:]
+
+        dist_i = (1 - cdist(query, doc, metric="cosine")).ravel()
+        dist_i[np.isnan(dist_i)] = 0.0
+
+        return dist_i
+
+    def predict(self, X):
+        similarities = np.asarray([self.compute_cosine_similarities(x_i) for x_i in X])        
+        sorted_similarities = np.sort(similarities)[:, ::-1]
+
+        return self.clf.predict(sorted_similarities)
