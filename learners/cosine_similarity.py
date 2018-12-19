@@ -100,29 +100,26 @@ class QueryDocCosineSimilarityRegressor(object):
         self.clf = clf
         self.n_vectors_query = n_vectors_query
         self.n_vectors_docs = n_vectors_docs
-        self.n_partial_fits = 0
+        self.n_partial_fits = 2500
 
     def partial_fit(self, X, y, class_weights):
-        similarities = np.asarray([self.compute_cosine_similarities(x_i) for x_i in X])        
-        sorted_similarities = np.sort(similarities)[:, ::-1]
-
-        self.clf.partial_fit(sorted_similarities, y, class_weights)
+        self.clf.partial_fit(self.compute_sorted_similarities(X), y, class_weights)
 
         self.n_partial_fits += 1
-        if self.n_partial_fits % 200 == 0:
+        if self.n_partial_fits % 500 == 0:
             dump(self.clf, "./data/cosine_clf_LR_" + str(self.n_partial_fits) + ".pck")
 
-    def compute_cosine_similarities(self, x_i):
-        query = x_i[:self.n_vectors_query]
-        doc = x_i[self.n_vectors_query:]
+    def compute_sorted_similarities(self, X):
+        queries = X[:, :self.n_vectors_query]
+        docs = X[:, self.n_vectors_query:]
 
-        dist_i = (1 - cdist(query, doc, metric="cosine")).ravel()
-        dist_i[np.isnan(dist_i)] = 0.0
+        distances = np.asarray([cdist(q, d, metric="cosine") for q, d in zip(queries, docs)])
+        distances = distances.reshape(distances.shape[0], distances.shape[1] * distances.shape[2])
 
-        return dist_i
+        similarities = 1.0 - distances
+        similarities[np.isnan(similarities)] = 0
+
+        return np.sort(similarities)[:, ::-1]
 
     def predict(self, X):
-        similarities = np.asarray([self.compute_cosine_similarities(x_i) for x_i in X])        
-        sorted_similarities = np.sort(similarities)[:, ::-1]
-
-        return self.clf.predict(sorted_similarities)
+        return self.clf.predict(self.compute_sorted_similarities(X))

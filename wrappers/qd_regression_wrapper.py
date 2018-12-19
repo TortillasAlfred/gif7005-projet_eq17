@@ -126,7 +126,7 @@ class QueryDocRegressionWrapper:
             return np.argpartition(y_i_raw, -self.n_predicted_per_sample)[-self.n_predicted_per_sample:]
         
     def predict_x_i_matrix(self, x_i):
-        y_i_raw = self.clf.predict([np.vstack((x_i, d)) for d in self.docs])
+        y_i_raw = self.clf.predict(np.asarray([np.vstack((x_i, d)) for d in self.docs]))
 
         if self.n_predicted_per_sample == -1:
             return y_i_raw

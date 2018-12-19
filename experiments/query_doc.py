@@ -11,6 +11,8 @@ from wrappers.regression_wrapper import RegressionWrapper
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.neural_network import MLPRegressor
 
+from joblib import load
+
 class PoC:
     def __init__(self, load_from_numpy):
         vectWV = DictSentenceVectorizerSpacy()
@@ -156,10 +158,17 @@ class CosineSimilarityWithLinearRegressor:
                                         class_weights=self.batch_loader.get_class_weights(),
                                         matrix_embeddings=True)
 
+        n_epoch = 1
+        max_epoch = 10
         while True:
             partial_X_train, partial_y_train = self.batch_loader.get_next_batch()
             if partial_X_train is None or partial_y_train is None:
-                break
+                if n_epoch >= max_epoch:
+                    break
+
+                n_epoch += 1
+                self.batch_loader.next_epoch()
+
             clf.partial_fit(partial_X_train, partial_y_train)
 
         X_train, X_valid, y_train, y_valid = self.batch_loader.get_X_and_y()

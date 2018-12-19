@@ -23,7 +23,7 @@ class QueryDocBatchDataLoader(DataLoader):
             self.pairs = self.__generate_pairs()
         else:
             self.pairs = self.__load_pairs()
-        self.batch_size = batch_size
+        self.batch_size = int(batch_size)
         self.current_batch = 0
         self.current_epoch = 1
         self.num_batches = int((self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0]) / self.batch_size)
@@ -71,7 +71,7 @@ class QueryDocBatchDataLoader(DataLoader):
         return combinations
 
     def __load_pairs(self):
-        return np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode='r',
+        return np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode='r+',
                   shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
 
     def get_next_batch(self):
@@ -79,7 +79,7 @@ class QueryDocBatchDataLoader(DataLoader):
         if self.current_batch <= self.num_batches:
             start_idx = int(self.current_batch * self.batch_size)
             end_idx = int(start_idx + self.batch_size)
-            next_pairs = self.pairs[start_idx:end_idx]
+            next_pairs = self.pairs[start_idx:end_idx]        
             next_batch = self.__get_batch(next_pairs)
             self.current_batch += 1
 
