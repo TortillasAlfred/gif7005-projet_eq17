@@ -10,12 +10,6 @@ from loading.oneHotEncoder import OneHotEncoder
 
 torch.manual_seed(1)
 
-def prepare_sequence(seq, to_ix):
-    idxs = [to_ix[w] for w in seq]
-    return torch.tensor(idxs, dtype=torch.long)
-
-
-
 class LSTMInfer(nn.Module):
 
     def __init__(self, embedding_dim, hidden_dim, nb_queries, nb_class):
@@ -29,7 +23,7 @@ class LSTMInfer(nn.Module):
         self.lstm = nn.LSTM(embedding_dim, hidden_dim)
 
         # The linear layer that maps from hidden state space to tag space
-        self.hidden2tag = nn.Linear(hidden_dim, nb_class)
+        self.hidden2doc = nn.Linear(hidden_dim, nb_class)
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
@@ -41,9 +35,10 @@ class LSTMInfer(nn.Module):
                 torch.zeros(1, 1, self.hidden_dim))
 
     def forward(self, sentence):
+        #embeds = sentence
         embeds = self.word_embeddings(sentence)
         lstm_out, self.hidden = self.lstm(
-            embeds.view(len(sentence), 1, -1), self.hidden)
+            embeds.view(nb_features, 1, -1), self.hidden)
         response_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
         response_scores = F.log_softmax(response_space, dim=1)
         return response_scores
@@ -69,7 +64,7 @@ documents_train = loader.load_all_from_numpy("all_docs")
 
 nb_exemples = training_data.shape[0]
 nb_doc = documents_train.shape[0]
-nb_features = training_data[0][0].shape[0]
+nb_features = 300
 
 
 '''lstm = nn.LSTM(20, 20)  # Input dim is 3, output dim is 3
@@ -88,7 +83,10 @@ loss_function = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 with torch.no_grad():
-    inputs = torch.tensor(training_data[0,0], dtype=torch.long)
+    t = training_data[0,0]
+    t = t[30:330]
+    inputs = torch.tensor(t)
+    inputs.view(1,1,300)
     doc_score = model(inputs)
     print(doc_score)
 
@@ -104,7 +102,8 @@ for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is t
 
         # Step 2. Get our inputs ready for the network, that is, turn them into
         # Tensors of word indices.
-        query_in = torch.tensor(query)
+        query_in = torch.tensor(query[30:330])
+        query_in.view(1,1,300)
         docs = [torch.tensor[doc] for doc in document]
 
         # Step 3. Run our forward pass.
@@ -118,7 +117,8 @@ for epoch in range(300):  # again, normally you would NOT do 300 epochs, it is t
 
 # See what the scores are after training
 with torch.no_grad():
-    inputs = training_data[0][0]
+    t = training_data[0,0]
+    inputs = torch.tensor(t[30:300])
     doc_score = model(inputs)
 
     # The sentence is "the dog ate the apple".  i,j corresponds to score for tag j
