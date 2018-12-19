@@ -3,6 +3,7 @@ from loading.bagOfWordsVectorizer import BagOfWordsVectorizer
 from loading.wordVectorizer import MatrixWordVectorizer
 from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
+from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from learners.cosine_similarity import *
 
 from scorers.coveo_scorer import coveo_score
@@ -13,7 +14,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.base import clone
 
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, load
 
 import numpy as np
 
@@ -33,6 +34,40 @@ class GlobalExperiment():
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/bow_oh_filtered/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
+
+    def run_experiment_Cosine_LR(self):
+        # self.collect_results_cosine_LR()
+        self.plot_results_cosine_LR()
+
+    def plot_results_cosine_LR(self):        
+        for n_fits in [200, 400, 600, 800, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500]:
+            plt.plot(np.load("./data/mean_max_train_scores_" + str(n_fits) + ".npy"), label="Train {} fits".format(n_fits))
+            plt.plot(np.load("./data/mean_max_valid_scores_" + str(n_fits) + ".npy"), label="Valid {} fits".format(n_fits))
+
+        plt.xlabel("N_predicted_per_sample")
+        plt.ylabel("Coveo score")
+        plt.title("Métriques avec un LR entraîné sur la cosine similarity")
+
+        plt.legend()
+
+        plt.show()
+        
+
+    def collect_results_cosine_LR(self):
+        X_train, X_valid, y_train, y_valid, all_docs = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                                        "y_train", "y_valid", "all_docs")
+
+        for n_fits in [1500, 2000, 2500, 3000, 3500, 4000, 4500]:
+            print(n_fits)
+            reg = load("./data/cosine_clf_LR_" + str(n_fits) + ".pck")
+            clf = QueryDocRegressionWrapper(QueryDocCosineSimilarityRegressor(reg, 20, 20),
+                                            all_docs, proportion_neg_examples=-1,
+                                            matrix_embeddings=True, n_jobs=6)
+            scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+            scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+            
+            np.save("./data/mean_max_train_scores_" + str(n_fits), scores_train)
+            np.save("./data/mean_max_valid_scores_" + str(n_fits), scores_valid)
 
 
     def run_experiment_LR(self):

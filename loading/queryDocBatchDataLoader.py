@@ -23,10 +23,14 @@ class QueryDocBatchDataLoader(DataLoader):
             self.pairs = self.__generate_pairs()
         else:
             self.pairs = self.__load_pairs()
-        self.batch_size = batch_size
+        self.batch_size = int(batch_size)
         self.current_batch = 0
         self.current_epoch = 1
         self.num_batches = int((self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0]) / self.batch_size)
+        if len(self.tr_doc_titles.shape) == 2:
+            self.__get_batch = self.__get_batch_vector
+        else:
+            self.__get_batch = self.__get_batch_matrix
 
     def __load_transform_queries(self):
         self.load_searches()
@@ -67,7 +71,7 @@ class QueryDocBatchDataLoader(DataLoader):
         return combinations
 
     def __load_pairs(self):
-        return np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode='r',
+        return np.memmap("./data/random_pairs_filtered.npy", dtype=np.uint32, mode='r+',
                   shape=(self.tr_q_exps_train.shape[0] * self.tr_doc_titles.shape[0], 2))
 
     def get_next_batch(self):
@@ -75,19 +79,29 @@ class QueryDocBatchDataLoader(DataLoader):
         if self.current_batch <= self.num_batches:
             start_idx = int(self.current_batch * self.batch_size)
             end_idx = int(start_idx + self.batch_size)
-            next_pairs = self.pairs[start_idx:end_idx]
+            next_pairs = self.pairs[start_idx:end_idx]        
             next_batch = self.__get_batch(next_pairs)
             self.current_batch += 1
 
         print("Epoch {}, Batch {}/{}".format(self.current_epoch, self.current_batch, self.num_batches))
         return next_batch
 
-    def __get_batch(self, pairs):
+    def __get_batch_vector(self, pairs):
         X = np.empty(shape=(pairs.shape[0], self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1]), dtype="float16")
         y = np.empty(shape=(pairs.shape[0], ), dtype=bool)
 
         for i, pair in enumerate(pairs):
             X[i] = np.hstack((self.tr_q_exps_train[pair[0]], self.tr_doc_titles[pair[1]]))
+            y[i] = pair[1] in self.tr_y[pair[0]]
+
+        return X, y
+
+    def __get_batch_matrix(self, pairs):
+        X = np.empty(shape=(pairs.shape[0], self.tr_q_exps_train.shape[1] + self.tr_doc_titles.shape[1], self.tr_doc_titles.shape[2]), dtype="float16")
+        y = np.empty(shape=(pairs.shape[0], ), dtype=bool)
+
+        for i, pair in enumerate(pairs):
+            X[i] = np.vstack((self.tr_q_exps_train[pair[0]], self.tr_doc_titles[pair[1]]))
             y[i] = pair[1] in self.tr_y[pair[0]]
 
         return X, y
