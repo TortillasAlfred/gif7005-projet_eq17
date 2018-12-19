@@ -119,7 +119,7 @@ class DataLoader:
         X_test = []
 
         for feature in list(searches_train):
-            if feature in self.features_transformers.keys():
+            if feature in self.features_transformers.keys() and feature == "query_expression":
                 d_train, d_valid, d_test = self.features_transformers[feature](searches_train[feature],
                                                                                searches_valid[feature],
                                                                                searches_test[feature])
@@ -167,7 +167,7 @@ class DataLoader:
         y_valid = []
 
         for feature in list(clicks_train):
-            if feature in self.features_transformers.keys():
+            if feature in self.features_transformers.keys() and feature == "document_title":
                 d_train, d_valid = self.features_transformers[feature](clicks_train[feature],
                                                                                clicks_valid[feature])
                 y_train.append(d_train)
