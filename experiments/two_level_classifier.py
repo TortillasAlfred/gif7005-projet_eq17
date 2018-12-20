@@ -22,8 +22,6 @@ class two_level_classifier:
                             data_folder_path="./data/", numpy_folder_path="./data/bow_oh_filtered/",
                             load_from_numpy=True, filter_no_clicks=True)
 
-        loader.load_transform_data()
-        X_valid, y_valid, all_docs_ids = loader.load_all_from_numpy("X_valid", "y_valid", "all_docs_ids")
+        _, X_valid, _, _, y_valid, _, _ = loader.load_transform_data()
         X_valid = X_valid.astype(float)
-
         print(self.searchEngine.score(X_valid, y_valid, n_outputs=200))
