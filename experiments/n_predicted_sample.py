@@ -5,6 +5,7 @@ from loading.dataLoader import DataLoader
 from wrappers.regression_wrapper import RegressionWrapper, MultiOutputRegressorWrapper
 from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from learners.cosine_similarity import *
+from learners.LSTM import CustomLSTM
 
 from scorers.coveo_scorer import coveo_score
 
@@ -17,6 +18,8 @@ from sklearn.base import clone
 from joblib import Parallel, delayed, load
 
 import numpy as np
+
+import torch
 
 class GlobalExperiment():
     def __init__(self, load_from_numpy=False):
@@ -34,6 +37,40 @@ class GlobalExperiment():
                                     click_features=DataLoader.default_click_features,
                                     data_folder_path="./data/", numpy_folder_path="./data/bow_oh_filtered/",
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
+
+    def run_experiment_LSTM(self):
+        self.collect_results_LSTM()
+        self.plot_results_LSTM()
+
+    def plot_results_LSTM(self):        
+        for n_fits in [400, 800, 1200, 1600, 2000]:
+            plt.plot(np.load("./data/lstm_train_scores_" + str(n_fits) + ".npy"), label="Train {} fits".format(n_fits))
+            plt.plot(np.load("./data/lstm_valid_scores_" + str(n_fits) + ".npy"), label="Valid {} fits".format(n_fits))
+
+        plt.xlabel("N_predicted_per_sample")
+        plt.ylabel("Coveo score")
+        plt.title("Métriques avec un LSTM")
+
+        plt.legend()
+
+        plt.show()
+        
+
+    def collect_results_LSTM(self):
+        X_train, X_valid, y_train, y_valid, all_docs = self.loader_wv.load_all_from_numpy("X_train", "X_valid",
+                                                                                        "y_train", "y_valid", "all_docs")
+
+        for n_fits in [400, 800, 1200, 1600, 2000]:
+            lstm = CustomLSTM(300, 100, 1, 1, 15000)
+            lstm.load_state_dict(torch.load("./data/LSTM/{}.pt".format(n_fits)))
+            clf = QueryDocRegressionWrapper(lstm,
+                                            all_docs, proportion_neg_examples=-1,
+                                            matrix_embeddings=True, n_jobs=1)
+            scores_train = self.get_all_scores(clf.predict(X_train, n_predicted_per_sample=-1), y_train)
+            scores_valid = self.get_all_scores(clf.predict(X_valid, n_predicted_per_sample=-1), y_valid)
+            
+            np.save("./data/lstm_train_scores_" + str(n_fits), scores_train)
+            np.save("./data/lstm_valid_scores_" + str(n_fits), scores_valid)
 
     def run_experiment_Cosine_LR(self):
         self.collect_results_cosine_LR()

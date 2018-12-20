@@ -182,7 +182,7 @@ class LSTM_first_try:
     def __init__(self, load_from_numpy):
         vectWV = MatrixWordVectorizer()
         enc = OneHotEncoder()
-        self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, encoder=enc, batch_size=4e4, data_folder_path="./data/",
+        self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, encoder=enc, batch_size=15000, data_folder_path="./data/",
                                                     numpy_folder_path="./data/qd_wv_matrix/", load_from_numpy=load_from_numpy,
                                                     filter_no_clicks=True, load_dummy=False, generate_pairs=False)
 
@@ -192,7 +192,7 @@ class LSTM_first_try:
     def run_qd_wrapped_all_dataset(self):
         print("**** LSTM ****")
         all_docs = self.batch_loader.load_all_from_numpy("all_docs")
-        clf = QueryDocRegressionWrapper(CustomLSTM(300, 100),
+        clf = QueryDocRegressionWrapper(CustomLSTM(300, 100, 1, 1, 15000),
                                         docs=all_docs, proportion_neg_examples=-1, 
                                         class_weights=self.batch_loader.get_class_weights(),
                                         matrix_embeddings=True)
