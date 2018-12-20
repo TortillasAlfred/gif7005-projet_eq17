@@ -25,10 +25,21 @@ X_valid = validation_data[:,0]
 y_valid = np.sum(validation_data[:,1], axis=1)*1000
 y_valid = list(map(int, y_valid))
 
-clf = KNeighborsClassifier(n_neighbors=15, weights='distance', algorithm='auto')
-clf.fit(X_train, y_train)
+for n in [1,3,10,30]:
+    clf = KNeighborsClassifier(n_neighbors=n, weights='distance', algorithm='auto')
+    clf.fit(X_train, y_train)
 
-for query, doc in validation_data:
-    pass
+    predicts = clf.predict(X_valid)
+    kneighbors = clf.kneighbors(X_valid, 4, return_distance=False)
 
-print(clf.score(validation_data[:, 0], validation_data[:, 1]))
+    predicted_neighbors = np.zeros((kneighbors.shape[0], kneighbors.shape[1]+1))
+
+    good = 0
+    for i in range(len(kneighbors)):
+        predicted_neighbors[i][0] = predicts[i]
+        for j in range(len(kneighbors[i])):
+            predicted_neighbors[i][j+1] = y_train[kneighbors[i,j]]
+        if y_valid[i] in predicted_neighbors[i]:
+            good += 1
+
+    print(good)
