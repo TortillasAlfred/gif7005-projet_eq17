@@ -4,6 +4,7 @@ from loading.queryDocBatchDataLoader import QueryDocBatchDataLoader
 from loading.oneHotEncoder import OneHotEncoder
 
 from learners.cosine_similarity import *
+from learners.LSTM import CustomLSTM
 
 from wrappers.qd_regression_wrapper import QueryDocRegressionWrapper
 from wrappers.regression_wrapper import RegressionWrapper
@@ -154,6 +155,44 @@ class CosineSimilarityWithLinearRegressor:
         print("**** Query Doc Cosine with LinReg ****")
         all_docs = self.batch_loader.load_all_from_numpy("all_docs")
         clf = QueryDocRegressionWrapper(QueryDocCosineSimilarityRegressor(SGDRegressor(verbose=1), 20, 20),
+                                        docs=all_docs, proportion_neg_examples=-1, 
+                                        class_weights=self.batch_loader.get_class_weights(),
+                                        matrix_embeddings=True)
+
+        n_epoch = 1
+        max_epoch = 10
+        while True:
+            partial_X_train, partial_y_train = self.batch_loader.get_next_batch()
+            if partial_X_train is None or partial_y_train is None:
+                if n_epoch >= max_epoch:
+                    break
+
+                n_epoch += 1
+                self.batch_loader.next_epoch()
+
+            clf.partial_fit(partial_X_train, partial_y_train)
+
+        X_train, X_valid, y_train, y_valid = self.batch_loader.get_X_and_y()
+
+        print("Coveo score on train : {}".format(clf.score(X_train, y_train)))
+        print("Coveo score on valid : {}".format(clf.score(X_valid, y_valid)))
+
+
+class LSTM_first_try:
+    def __init__(self, load_from_numpy):
+        vectWV = MatrixWordVectorizer()
+        enc = OneHotEncoder()
+        self.batch_loader = QueryDocBatchDataLoader(vectorizer=vectWV, encoder=enc, batch_size=4e4, data_folder_path="./data/",
+                                                    numpy_folder_path="./data/qd_wv_matrix/", load_from_numpy=load_from_numpy,
+                                                    filter_no_clicks=True, load_dummy=False, generate_pairs=False)
+
+    def run_experiment(self):
+        self.run_qd_wrapped_all_dataset()
+
+    def run_qd_wrapped_all_dataset(self):
+        print("**** LSTM ****")
+        all_docs = self.batch_loader.load_all_from_numpy("all_docs")
+        clf = QueryDocRegressionWrapper(CustomLSTM(300, 100),
                                         docs=all_docs, proportion_neg_examples=-1, 
                                         class_weights=self.batch_loader.get_class_weights(),
                                         matrix_embeddings=True)

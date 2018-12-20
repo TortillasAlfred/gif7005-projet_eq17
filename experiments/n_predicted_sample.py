@@ -36,7 +36,7 @@ class GlobalExperiment():
                                     load_from_numpy=load_from_numpy, filter_no_clicks=True)
 
     def run_experiment_Cosine_LR(self):
-        # self.collect_results_cosine_LR()
+        self.collect_results_cosine_LR()
         self.plot_results_cosine_LR()
 
     def plot_results_cosine_LR(self):        
