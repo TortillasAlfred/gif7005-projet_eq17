@@ -10,7 +10,7 @@ class two_level_classifier:
         vectWV = MatrixWordVectorizer()
         enc = OneHotEncoder()
         data_folder_path = "./data/"
-        load_from_numpy = False
+        load_from_numpy = True
         self.loader = DataLoader(vectorizer=vectBOW, one_hot_encoder=enc,
                                  search_features=DataLoader.default_search_features,
                                  click_features=DataLoader.default_click_features,
@@ -32,6 +32,7 @@ class two_level_classifier:
     def run_experiment(self):
         _, X_valid, _, _, y_valid, _, _ = self.loader.load_transform_data()
         for i in range(1, 21):
+            print("Iteration " + str(i) + " in progress")
             n_pred_neural_network = i * 20
             score = self.clf.score(X_valid, y_valid, n_pred_neural_network=n_pred_neural_network)
             f = open(str(n_pred_neural_network) + ".txt", "w+")
