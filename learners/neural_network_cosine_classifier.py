@@ -21,9 +21,8 @@ class Neural_network_cosine_classifier():
 
     def predict(self, X, n_pred_neural_network):
         neural_network_pred = self.searchEngine.predict(X.astype(float), n_outputs=n_pred_neural_network)
-        
-        y_pred = np.empty((X.shape[0], 5), dtype=int)
-        
+
+        y_pred = np.empty((X.shape[0], 5), dtype=str)
         for i in range(X.shape[0]):
             query_expression_embedding = self.query_expression_embeddings[i]
             prediction_title_embeddings = self.document_title_embeddings[neural_network_pred[i]]
@@ -32,7 +31,8 @@ class Neural_network_cosine_classifier():
             for j in range(n_pred_neural_network):
                 X_regressor[j] = np.vstack((query_expression_embedding, prediction_title_embeddings[j]))
             indices_best = self.cosine.predict(X_regressor, n_predicted_per_sample=5)
-            y_pred[i] = neural_network_pred[i][indices_best]
+            y_pred[i] = self.all_docs_ids[neural_network_pred[i][indices_best]]
+
         return y_pred
 
     def score(self, X, y_true, n_pred_neural_network):
