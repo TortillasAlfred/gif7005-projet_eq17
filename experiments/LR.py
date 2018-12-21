@@ -37,9 +37,9 @@ class LR:
 
     def run_experiment(self):
         # self.run_wn()
-        # self.run_unfiltered()
-        # self.run_filtered()
-        self.run_multioutput_lin_reg_balanced_wv()
+        self.run_unfiltered()
+        self.run_filtered()
+        # self.run_multioutput_lin_reg_balanced_wv()
         # self.run_multioutput_lin_reg_balanced_BoW()
 
     def run_wn(self):
