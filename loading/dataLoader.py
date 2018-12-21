@@ -74,7 +74,7 @@ class DataLoader:
         self.load_clicks()
         self.transform_clicks()
 
-        self.associate_xy()
+        self.get_y()
 
         if self.filter_no_clicks:
             self.filter_data()
@@ -119,7 +119,7 @@ class DataLoader:
         X_test = []
 
         for feature in list(searches_train):
-            if feature in self.features_transformers.keys() and feature == "query_expression":
+            if feature in self.features_transformers.keys():
                 d_train, d_valid, d_test = self.features_transformers[feature](searches_train[feature],
                                                                                searches_valid[feature],
                                                                                searches_test[feature])
@@ -131,9 +131,9 @@ class DataLoader:
         X_valid = np.hstack([liste for liste in X_valid])
         X_test = np.hstack([liste for liste in X_test])
 
-        self.save_all_to_numpy(**{"query_vect_train": X_train,
-                                  "query_vect_valid": X_valid,
-                                  "query_vect_test": X_test})
+        self.save_all_to_numpy(**{"X_train": X_train,
+                                  "X_valid": X_valid,
+                                  "X_test": X_test})
 
     def load_clicks(self):
         if self.load_dummy:
@@ -150,7 +150,7 @@ class DataLoader:
         clicks_train, clicks_valid = self.load_all_from_pickle("clicks_train",
                                                                "clicks_valid")
 
-        '''all_clicks = pds.concat([clicks_train, clicks_valid])
+        all_clicks = pds.concat([clicks_train, clicks_valid])
         all_clicks.drop_duplicates(subset="document_id", inplace=True)
 
         all_docs = []
@@ -161,76 +161,14 @@ class DataLoader:
                 all_docs.append(d[0])
 
         self.save_all_to_numpy(**{"all_docs_ids": all_clicks["document_id"].values,
-                                  "all_docs": all_docs[0]})'''
+                                  "all_docs": all_docs[0]})
 
-        y_train = []
-        y_valid = []
-
-        for feature in list(clicks_train):
-            if feature in self.features_transformers.keys() and feature == "document_title":
-                d_train, d_valid = self.features_transformers[feature](clicks_train[feature],
-                                                                               clicks_valid[feature])
-                y_train.append(d_train)
-                y_valid.append(d_valid)
-
-        y_train = np.hstack([liste for liste in y_train])
-        y_valid = np.hstack([liste for liste in y_valid])
-
-        self.save_all_to_numpy(**{"doc_vect_train": y_train,
-                                  "doc_vect_valid": y_valid})
-
-
-    def associate_xy(self):
-        searches_train, searches_valid, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
-                                                                                               "searches_valid",
-                                                                                               "clicks_train",
-                                                                                               "clicks_valid")
-        all_docs_ids = self.load_all_from_numpy("all_docs_ids")
-
-        query_vect_train = self.load_all_from_numpy("query_vect_train")
-        query_vect_valid =  self.load_all_from_numpy("query_vect_train")
-        doc_vect_train = self.load_all_from_numpy("doc_vect_train")
-        doc_vect_valid = self.load_all_from_numpy("doc_vect_valid")
-
-        y_train = np.zeros((searches_train.shape[0], all_docs_ids.shape[0]), dtype=bool)
-        y_valid = np.zeros((searches_valid.shape[0], all_docs_ids.shape[0]), dtype=bool)
-
-        correspondance_train = clicks_train[["search_id", "document_id"]]
-        for c in correspondance_train.values:
-            y_train[np.where(searches_train.search_id.values == c[0]), \
-                    np.where(all_docs_ids == c[1])] = True
-
-        correspondance_valid = clicks_valid[["search_id", "document_id"]]
-        for c in correspondance_valid.values:
-            y_valid[np.where(searches_valid.search_id.values == c[0]), \
-                    np.where(all_docs_ids == c[1])] = True
-
-        y_train = np.asarray([np.where(row == 1)[0] for row in y_train])
-        y_valid = np.asarray([np.where(row == 1)[0] for row in y_valid])
-
-        test_train = []
-        test_valid = []
-
-        for i in range(len(y_train)):
-            for idx in y_train[i]:
-                test_train.append((query_vect_train[i], doc_vect_train[idx]))
-
-        for i in range(len(y_valid)):
-            for idx in y_valid[i]:
-                test_valid.append((query_vect_valid[i], doc_vect_valid[idx]))
-        test_train = np.asarray(test_train)
-        test_valid = np.asarray(test_valid)
-
-        self.save_all_to_numpy(**{"test_train": test_train,
-                                  "test_valid": test_valid})
     def get_y(self):
         searches_train, searches_valid, clicks_train, clicks_valid = self.load_all_from_pickle("searches_train",
                                                                                                "searches_valid",
                                                                                                "clicks_train",
                                                                                                "clicks_valid")
         all_docs_ids = self.load_all_from_numpy("all_docs_ids")
-        doc_vect_train = self.load_all_from_numpy("doc_vect_train")
-        doc_vect_valid = self.load_all_from_numpy("doc_vect_valid")
 
         all_clicks = pds.concat([clicks_train, clicks_valid])
         y_train = np.zeros((searches_train.shape[0], all_docs_ids.shape[0]), dtype=bool)
@@ -249,21 +187,8 @@ class DataLoader:
         y_train = np.asarray([np.where(row == 1)[0] for row in y_train])
         y_valid = np.asarray([np.where(row == 1)[0] for row in y_valid])
 
-        test_train = []
-        test_valid = []
-
-        for i in range(len(y_train)):
-            test_train.append([])
-            for idx in y_train[i]:
-                test_train[i].append(doc_vect_train[idx])
-
-        for i in range(len(y_valid)):
-            test_valid.append([])
-            for idx in y_valid[i]:
-                test_valid[i].append(doc_vect_valid[idx])
-
-        self.save_all_to_numpy(**{"y_train": test_train,
-                                  "y_valid": test_valid})
+        self.save_all_to_numpy(**{"y_train": y_train,
+                                  "y_valid": y_valid})
 
     def no_transformer(self, data_train, *data):
         return_data = [np.asarray(data_train)]
