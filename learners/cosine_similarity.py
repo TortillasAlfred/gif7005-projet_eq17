@@ -38,8 +38,9 @@ class CosineSimilarityRegressor(object):
         distances = distances.reshape(distances.shape[0], distances.shape[1] * distances.shape[2])
 
         similarities = 1.0 - distances
+        similarities[np.isnan(similarities)] = 0
 
-        return np.ma.masked_invalid(similarities)
+        return similarities
 
     def predict(self, X):
         raise NotImplementedError()
@@ -93,12 +94,18 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
     def predict(self, X, n_predicted_per_sample=5):
         distances = self.compute_similarities_docs_included(X)
 
-        y_predict = np.asarray([(np.ma.mean(d) + np.ma.max(d))/2 for d in distances])
+        y_predict = np.asarray([(self.mean(d) + d.max())/2 for d in distances])
         
         if n_predicted_per_sample == -1:
             return y_predict
         else:
             return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
+            
+    def mean(self, d):
+        if np.count_nonzero(d) == 0:
+            return 0
+        else
+            return np.sum(d)/np.count_nonzero(d)
 
 
 class QueryDocCosineSimilarityRegressor(object):
