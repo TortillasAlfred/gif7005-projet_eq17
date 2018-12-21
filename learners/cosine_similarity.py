@@ -91,19 +91,14 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
         super().__init__(all_docs, n_vectors_query, n_vectors_docs)
 
     def predict(self, X, n_predicted_per_sample=5):
-        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=1)(delayed(self.predict_x)
-                                    (x_i, n_predicted_per_sample) for x_i in X))
+        distances = self.compute_similarities_docs_included(X)
+
+        y_predict = np.asarray([(np.ma.mean(d) + np.ma.max(d))/2 for d in distances])
         
         if n_predicted_per_sample == -1:
             return y_predict
         else:
             return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
-            
-    def predict_x(self, x_i, n_predicted_per_sample=5):
-        distances = self.compute_similarities_docs_included(x_i)
-
-        return np.asarray([(np.ma.mean(d) + np.ma.max(d))/2 for d in distances])
-
 
 
 class QueryDocCosineSimilarityRegressor(object):
