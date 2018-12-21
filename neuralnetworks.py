@@ -8,6 +8,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 import torch
+import torch.utils.data
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import SGD

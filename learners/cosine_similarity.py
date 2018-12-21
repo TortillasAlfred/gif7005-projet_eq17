@@ -30,6 +30,18 @@ class CosineSimilarityRegressor(object):
 
         return distances
 
+    def compute_similarities_docs_included(self, X):
+        queries = X[:, :self.n_vectors_query]
+        docs = X[:, self.n_vectors_query:]
+
+        distances = np.asarray([cdist(q, d, metric="cosine") for q, d in zip(queries, docs)])
+        distances = distances.reshape(distances.shape[0], distances.shape[1] * distances.shape[2])
+
+        similarities = 1.0 - distances
+        similarities[np.isnan(similarities)] = 0
+
+        return similarities
+
     def predict(self, X):
         raise NotImplementedError()
 
@@ -71,7 +83,7 @@ class MeanCosineSimilarityRegressor(CosineSimilarityRegressor):
             return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
             
     def predict_x(self, x_i, n_predicted_per_sample=5):
-        distances = self.compute_cosine_similarities(x_i)
+        distances = self.compute_similarities_docs_included(x_i)
 
         return np.asarray([np.mean(d) for d in distances])
 
@@ -80,19 +92,20 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
         super().__init__(all_docs, n_vectors_query, n_vectors_docs)
 
     def predict(self, X, n_predicted_per_sample=5):
-        y_predict = np.asarray(Parallel(n_jobs=-1, verbose=1)(delayed(self.predict_x)
-                                    (x_i, n_predicted_per_sample) for x_i in X))
+        distances = self.compute_similarities_docs_included(X)
+
+        y_predict = np.asarray([(self.mean(d) + d.max())/2 for d in distances])
         
         if n_predicted_per_sample == -1:
             return y_predict
         else:
-            return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
-            
-    def predict_x(self, x_i, n_predicted_per_sample=5):
-        distances = self.compute_cosine_similarities(x_i)
+            return np.argpartition(y_predict, -n_predicted_per_sample)[-n_predicted_per_sample:]
 
-        return np.asarray([(np.mean(d) + d.max())/2 for d in distances])
-
+    def mean(self, d):
+        if np.count_nonzero(d) == 0:
+            return 0
+        else:
+            return np.sum(d)/np.count_nonzero(d)
 
 
 class QueryDocCosineSimilarityRegressor(object):
