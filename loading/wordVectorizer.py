@@ -55,7 +55,6 @@ class WordVectorizer(object):
             doc = self.nlp(str(queries[i]))
             wv[i] = doc.vector
         return wv
-        
 
     def generate_dict_sentence_vectors_avghandmade(self, queries):
         '''
