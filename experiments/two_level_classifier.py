@@ -31,7 +31,17 @@ class two_level_classifier:
 
     def run_experiment(self):
         _, X_valid, _, _, y_valid, _, _ = self.loader.load_transform_data()
-        for i in range(1, 21):
+
+        for i in range(6, 11):
+            print("Iteration " + str(i) + " in progress")
+            n_pred_neural_network = i
+            score = self.clf.score(X_valid, y_valid, n_pred_neural_network=n_pred_neural_network)
+            f = open(str(n_pred_neural_network) + ".txt", "w+")
+            f.write(str(score))
+            f.close()
+        
+        
+        for i in range(7, 21):
             print("Iteration " + str(i) + " in progress")
             n_pred_neural_network = i * 20
             score = self.clf.score(X_valid, y_valid, n_pred_neural_network=n_pred_neural_network)
