@@ -26,7 +26,8 @@ class QueryDocRegressionWrapper:
 
     Le RegressionWrapper sera aussi utilisé par un éventuel réseau de neurones.
     '''
-    def __init__(self, clf, docs, proportion_neg_examples, n_jobs=-1, class_weights=None, n_predicted_per_sample=5):
+    def __init__(self, clf, docs, proportion_neg_examples, n_jobs=-1, class_weights=None, n_predicted_per_sample=5, 
+                matrix_embeddings=False):
         self.clf = clf
         self.docs = np.asarray(docs, dtype="float16")
         self.proportion_neg_examples = proportion_neg_examples
@@ -34,6 +35,10 @@ class QueryDocRegressionWrapper:
         self.n_predicted_per_sample = n_predicted_per_sample
         self.random_state = 42
         self.class_weights = class_weights
+        if matrix_embeddings:
+            self.predict_x_i = self.predict_x_i_matrix
+        else:
+            self.predict_x_i = self.predict_x_i_vector
 
     def partial_fit(self, X, y):
         if self.proportion_neg_examples != -1:
@@ -102,18 +107,32 @@ class QueryDocRegressionWrapper:
 
         return shuffle(X_reg, y_reg, random_state=self.random_state)
 
-    def predict(self, X):
+    def predict(self, X, n_predicted_per_sample=None):
         print("BEGIN PREDICT")
+
+        if n_predicted_per_sample is not None:
+            self.n_predicted_per_sample = n_predicted_per_sample
 
         y_predict = Parallel(n_jobs=self.n_jobs, verbose=10)(delayed(self.predict_x_i)(x_i) for x_i in X)
 
         return np.asarray(y_predict)
 
-    def predict_x_i(self, x_i):
+    def predict_x_i_vector(self, x_i):
         y_i_raw = self.clf.predict([np.hstack((x_i, d)) for d in self.docs])
 
-        return np.argpartition(y_i_raw, -self.n_predicted_per_sample)[-self.n_predicted_per_sample:]
+        if self.n_predicted_per_sample == -1:
+            return y_i_raw
+        else:
+            return np.argpartition(y_i_raw, -self.n_predicted_per_sample)[-self.n_predicted_per_sample:]
+        
+    def predict_x_i_matrix(self, x_i):
+        y_i_raw = self.clf.predict(np.asarray([np.vstack((x_i, d)) for d in self.docs]))
 
+        if self.n_predicted_per_sample == -1:
+            return y_i_raw
+        else:
+            return np.argpartition(y_i_raw, -self.n_predicted_per_sample)[-self.n_predicted_per_sample:]
+            
     def score(self, X, y_true):
         y_pred = self.predict(X)
 

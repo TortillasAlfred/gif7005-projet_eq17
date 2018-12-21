@@ -81,7 +81,10 @@ class MultiOutputRegressorWrapper(RegressionWrapper):
     def predict_x(self, x, n_predicted_per_sample=5):
         y_predict = np.asarray([clf.predict(x) for clf in self.classifiers]).T
 
-        return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
+        if n_predicted_per_sample == -1:
+            return y_predict
+        else:
+            return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
 
 
     def score(self, X, y_true):
