@@ -100,7 +100,7 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
             return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
             
     def predict_x(self, x_i, n_predicted_per_sample=5):
-        distances = self.compute_cosine_similarities(x_i)
+        distances = self.compute_similarities_docs_included(x_i)
 
         return np.asarray([(np.ma.mean(d) + np.ma.max(d))/2 for d in distances])
 
