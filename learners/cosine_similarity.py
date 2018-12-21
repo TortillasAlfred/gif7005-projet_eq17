@@ -99,12 +99,12 @@ class MeanMaxCosineSimilarityRegressor(CosineSimilarityRegressor):
         if n_predicted_per_sample == -1:
             return y_predict
         else:
-            return np.argpartition(y_predict, -n_predicted_per_sample)[:, -n_predicted_per_sample:]
-            
+            return np.argpartition(y_predict, -n_predicted_per_sample)[-n_predicted_per_sample:]
+
     def mean(self, d):
         if np.count_nonzero(d) == 0:
             return 0
-        else
+        else:
             return np.sum(d)/np.count_nonzero(d)
 
 
