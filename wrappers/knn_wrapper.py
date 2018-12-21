@@ -25,4 +25,5 @@ class KNNWrapper:
 
     def score(self, X, y_true):
         y_pred = self.predict(X)
+        y_true = [[i] for i in y_true]
         return coveo_score(y_true, y_pred)
